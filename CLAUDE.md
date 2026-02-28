@@ -218,15 +218,42 @@ Para features de IA, consulta `.claude/ai_templates/_index.md`.
 
 ---
 
-## 🔄 Bucle Agéntico (Assembly Line)
+## 🔄 Metodología: NexusAgil (Assembly Line)
 
-Ver `.claude/prompts/bucle-agentico-blueprint.md` para el proceso completo:
+> El Bucle Agéntico nativo queda deprecado. **NexusAgil es el proceso oficial.**
 
-1. **Delimitar** → Dividir en FASES (sin subtareas)
-2. **Mapear** → Explorar contexto REAL antes de cada fase
-3. **Ejecutar** → Subtareas con MCPs según juicio
-4. **Auto-Blindaje** → Documentar errores y blindar proceso
-5. **Transicionar** → Siguiente fase con contexto actualizado
+Ver `.claude/skills/nexus-agil/SKILL.md` para el pipeline completo.
+
+**Activar con:**
+- `"NexusAgil, procesa esta HU: [descripción]"`
+- `"Sprint planning"`
+- `"Hotfix: [bug]"`
+- `"Quick flow: [cambio trivial]"`
+
+**Pipeline resumido:**
+```
+F0: Contexto (Codebase Grounding obligatorio)
+F1: Discovery → Work Item + ACs EARS
+GATE 1: HU_APPROVED  ← texto exacto, nada más activa el gate
+F2: SDD + Constraint Directives + Readiness Check
+GATE 2: SPEC_APPROVED  ← texto exacto, nada más activa el gate
+F2.5: Story File (contrato autocontenido para Dev)
+F3: Dev implementa SOLO desde Story File (waves + anti-alucinación)
+AR: Adversary ataca la solución (BLOQUEANTE/MENOR/OK)
+CR: Code Review
+F4: QA valida cada AC con evidencia archivo:línea
+DONE
+```
+
+**Reglas absolutas:**
+- Sin Story File → no se codea. Sin excepciones.
+- Quien especifica (Architect) NO implementa (Dev)
+- Quien implementa (Dev) NO valida (QA)
+
+**MCPs disponibles en cada fase:**
+- Supabase MCP → migraciones y queries en F3
+- Next.js MCP → errores build/runtime en F3 y F4
+- Playwright MCP → validación visual en F4 (QA)
 
 ---
 

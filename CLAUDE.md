@@ -218,27 +218,53 @@ Para features de IA, consulta `.claude/ai_templates/_index.md`.
 
 ---
 
-## 🔄 Metodología: NexusAgil (Assembly Line)
+## 🔄 Metodología de Trabajo
 
-> El Bucle Agéntico nativo queda deprecado. **NexusAgil es el proceso oficial.**
+> ⚠️ El Bucle Agéntico nativo está **eliminado**. No existe como opción.
+> NexusAgil es el único proceso válido — en modo FAST o QUALITY.
 
 Ver `.claude/skills/nexus-agil/SKILL.md` para el pipeline completo.
 
+---
+
+### Modo FAST — prototipos y cambios triviales
+
+Para MVPs, experimentos, o cambios de 1-2 archivos sin lógica nueva ni DB.
+Usa el **Quick Flow de NexusAgil** (Triage) — pipeline abreviado de 4 pasos.
+
+**Activar con:**
+- `"Quick flow: [cambio]"`
+- `"Implementa [algo trivial]"` → Triage evalúa si califica como Quick Flow
+
+**Califica como FAST si:**
+- 1-2 archivos máximo
+- Menos de 30 líneas de cambio
+- Sin cambios de DB
+- Sin lógica de negocio nueva
+- Sin auth ni pagos involucrados
+
+**Si no califica → automáticamente pasa a modo QUALITY.**
+
+---
+
+### Modo QUALITY — producción y features reales
+
+Para todo lo que va a usuarios reales, tiene DB, auth, pagos, o forma parte de un equipo.
+Usa el **pipeline completo de NexusAgil**.
+
 **Activar con:**
 - `"NexusAgil, procesa esta HU: [descripción]"`
-- `"Sprint planning"`
-- `"Hotfix: [bug]"`
-- `"Quick flow: [cambio trivial]"`
+- `"Sprint planning"` / `"Hotfix: [bug]"`
 
-**Pipeline resumido:**
+**Pipeline:**
 ```
-F0: Contexto (Codebase Grounding obligatorio)
+F0: Contexto (Codebase Grounding — lee código real antes de generar)
 F1: Discovery → Work Item + ACs EARS
 GATE 1: HU_APPROVED  ← texto exacto, nada más activa el gate
 F2: SDD + Constraint Directives + Readiness Check
 GATE 2: SPEC_APPROVED  ← texto exacto, nada más activa el gate
-F2.5: Story File (contrato autocontenido para Dev)
-F3: Dev implementa SOLO desde Story File (waves + anti-alucinación)
+F2.5: Story File (contrato autocontenido — Dev solo lee esto)
+F3: Dev implementa desde Story File (waves + anti-alucinación)
 AR: Adversary ataca la solución (BLOQUEANTE/MENOR/OK)
 CR: Code Review
 F4: QA valida cada AC con evidencia archivo:línea
@@ -249,8 +275,26 @@ DONE
 - Sin Story File → no se codea. Sin excepciones.
 - Quien especifica (Architect) NO implementa (Dev)
 - Quien implementa (Dev) NO valida (QA)
+- `HU_APPROVED` y `SPEC_APPROVED` activan los gates — nada más
 
-**MCPs disponibles en cada fase:**
+---
+
+### Cómo elegir
+
+| Señal | Modo |
+|-------|------|
+| Prototipo / exploración | FAST |
+| Cambio < 30 líneas, sin DB | FAST |
+| MVP que va a usuarios reales | QUALITY |
+| Feature con DB / auth / pagos | QUALITY siempre |
+| Bug crítico en producción | QUALITY (Hotfix pipeline) |
+| Equipo de 2+ personas | QUALITY siempre |
+
+**Duda → QUALITY.** El costo de hacerlo bien es menor que el de reparar un bug en producción.
+
+---
+
+**MCPs disponibles (NexusFactory):**
 - Supabase MCP → migraciones y queries en F3
 - Next.js MCP → errores build/runtime en F3 y F4
 - Playwright MCP → validación visual en F4 (QA)

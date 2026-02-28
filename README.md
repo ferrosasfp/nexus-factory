@@ -18,6 +18,33 @@ create-nexus mi-proyecto hybrid   # App Web2 + Web3
 
 ---
 
+## Metodologia incluida: NexusAgil
+
+NexusFactory incluye **NexusAgil** preinstalado — la metodologia de desarrollo con IA anti-alucinacion.
+
+### 3 modos de trabajo
+
+Al inicio de cada sesion, Claude pregunta que estas construyendo:
+
+| Modo | Para que | Activar con |
+|------|----------|-------------|
+| **FAST** | Fix trivial, 1-2 archivos | `"Quick flow: [cambio]"` |
+| **LAUNCH** | MVP o prototipo nuevo | `"NexusAgil, modo LAUNCH: [descripcion]"` |
+| **QUALITY** | Feature para produccion | `"NexusAgil, procesa esta HU: [descripcion]"` |
+
+**Proyecto nuevo sin project-context.md → LAUNCH por defecto.**
+
+### Lo que NexusAgil aporta
+- **Codebase Grounding** — Claude lee codigo real antes de generar. Nunca inventa.
+- **Anti-alucinacion** — Exemplar Pattern + Constraint Directives en cada SDD
+- **Gates humanos** — HU_APPROVED y SPEC_APPROVED. "ok" y "dale" no cuentan.
+- **Adversarial Review** — un agente ataca la solucion antes de aprobarla
+- **QA con evidencia** — cada AC verificado con archivo:linea
+
+Ver `.claude/skills/nexus-agil/SKILL.md` para el pipeline completo.
+
+---
+
 ## Golden Path
 
 Un solo stack perfeccionado. Sin decisiones técnicas.

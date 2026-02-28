@@ -29,6 +29,135 @@ description: >
 
 ---
 
+## Los 3 Modos de NexusAgil
+
+> Al inicio de cada sesion, si no hay contexto claro, Claude pregunta:
+>
+> **"¿Qué estás construyendo?"**
+> ```
+> 1. FAST    — Un cambio pequeño (fix, estilo, texto, 1-2 archivos)
+> 2. LAUNCH  — Algo nuevo desde cero (MVP, prototipo, nueva app)
+> 3. QUALITY — Feature para produccion (DB, auth, pagos, o usuarios reales)
+> ```
+
+---
+
+### FAST — Cambio trivial
+
+**Para:** fixes, estilos, textos, cambios de 1-2 archivos sin logica nueva ni DB.
+
+**Califica como FAST si cumple TODO:**
+- Maximo 2 archivos
+- Menos de 30 lineas de cambio
+- Sin cambios de DB ni migraciones
+- Sin logica de negocio nueva
+- Sin auth ni pagos involucrados
+
+**Si no cumple alguno → sube automaticamente a LAUNCH o QUALITY.**
+
+**Pipeline FAST (Quick Flow — 4 pasos):**
+```
+1. Triage verifica que califica como FAST
+2. Codebase Grounding minimo (leer el archivo a modificar)
+3. Dev implementa el cambio
+4. Verificacion: typecheck/build pasa
+Push
+```
+
+**Activar:** `"Quick flow: [descripcion]"` / `"Implementa [cambio trivial]"`
+
+---
+
+### LAUNCH — MVP / Prototipo nuevo
+
+**Para:** construir algo nuevo desde cero — MVP, prototipo funcional, nueva feature compleja.
+
+**Usa cuando:**
+- Es un proyecto nuevo o una feature que no existe
+- Tiene multiples componentes (UI + backend + DB)
+- No va a produccion todavia (o es la primera version)
+- Quieres velocidad sin sacrificar estructura
+
+**Pipeline LAUNCH (gates ligeros):**
+```
+F0: Bootstrap — descubrir stack, generar project-context.md
+    |
+F1: Lista de HUs del MVP (el humano las define)
+    |
+GATE: humano escribe LAUNCH_APPROVED
+    |
+F2: Story File directo por HU
+    (sin SDD completo — solo: objetivo, archivos, ACs, waves)
+    |
+F3: Dev implementa por waves con anti-alucinacion
+    |
+QA ligero: build limpio + ACs verificados manualmente
+    |
+Push — iterar
+```
+
+**Lo que tiene LAUNCH (vs FAST):**
+- Codebase Grounding completo (anti-alucinacion real)
+- Story File por HU (Dev nunca improvisa)
+- Gate humano (LAUNCH_APPROVED)
+- QA basico
+
+**Lo que NO tiene LAUNCH (vs QUALITY):**
+- Sin Work Item formal (S0)
+- Sin SDD completo con Constraint Directives
+- Sin Adversarial Review separado
+- Sin Code Review formal
+- Sin QA con evidencia archivo:linea
+
+**Activar:** `"NexusAgil, modo LAUNCH: [descripcion del MVP]"` / `"Construye [algo nuevo]"`
+
+---
+
+### QUALITY — Produccion
+
+**Para:** features que van a usuarios reales, con DB, auth, pagos, o en equipo.
+
+**Usa siempre cuando:**
+- Va a produccion
+- Tiene pagos o auth involucrados
+- Es un equipo de 2+ personas
+- Un bug tiene costo real (datos, dinero, reputacion)
+
+**Pipeline QUALITY (pipeline completo):**
+```
+F0: Contexto (Codebase Grounding)
+F1: Work Item + ACs EARS
+GATE 1: HU_APPROVED
+F2: SDD + Constraint Directives + Readiness Check
+GATE 2: SPEC_APPROVED
+F2.5: Story File autocontenido
+F3: Dev implementa (waves + anti-alucinacion)
+AR: Adversary Review (BLOQUEANTE/MENOR/OK)
+CR: Code Review
+F4: QA con evidencia archivo:linea
+Push
+```
+
+**Activar:** `"NexusAgil, procesa esta HU: [descripcion]"`
+
+---
+
+### Tabla de decision rapida
+
+| Señal | Modo |
+|-------|------|
+| Fix de 1-2 archivos, sin DB | FAST |
+| Cambio de texto o estilo | FAST |
+| MVP nuevo, primera version | LAUNCH |
+| Prototipo para demo/pitch | LAUNCH |
+| Feature que va a usuarios reales | QUALITY |
+| Tiene pagos o auth | QUALITY siempre |
+| Bug critico en produccion | QUALITY (Hotfix) |
+| Equipo de 2+ personas | QUALITY siempre |
+| **Duda** | **QUALITY** |
+
+---
+
 ## Activacion
 
 Activar este workflow cuando el usuario diga:
@@ -37,9 +166,16 @@ Activar este workflow cuando el usuario diga:
 - "Sprint planning" / "Status meeting" / "Retro"
 - "Inicia fase 0" / "Inicia F0" / "Inicia discovery"
 - "Adversarial review" / "Story file"
-- "Quick flow" / "Cambio trivial"
-- "Hotfix" / "Bug en produccion" / "Fix urgente"
-- Cualquier variacion que mencione "NexusAgil", "WasiAI", o "procesa HU"
+- "Quick flow" / "Cambio trivial" → modo FAST
+- "Modo LAUNCH" / "Construye" / "MVP" / "Prototipo" → modo LAUNCH
+- "Hotfix" / "Bug en produccion" / "Fix urgente" → modo QUALITY (Hotfix)
+- Cualquier variacion que mencione "NexusAgil" o "procesa HU"
+
+Si el usuario no especifica modo → Claude pregunta:
+"¿Qué estás construyendo?
+1. FAST — Un cambio pequeño
+2. LAUNCH — Algo nuevo desde cero
+3. QUALITY — Feature para produccion"
 
 ---
 

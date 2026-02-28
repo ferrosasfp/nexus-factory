@@ -1,7 +1,11 @@
-# Quick Flow — NexusAgil
+# Quick Flow — Modo FAST de NexusAgil
 
 > Triage maneja cambios triviales que no merecen el pipeline completo.
-> Activar con: "quick flow", "cambio trivial", "patch rapido".
+> Este es el pipeline del **modo FAST**.
+> Activar con: "quick flow", "cambio trivial", "patch rapido", "FAST".
+>
+> Para MVPs y prototipos usar **modo LAUNCH** (`modo LAUNCH: [descripcion]`).
+> Para produccion usar **modo QUALITY** (`NexusAgil, procesa esta HU: [descripcion]`).
 
 ---
 

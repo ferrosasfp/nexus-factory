@@ -279,18 +279,33 @@ DONE
 
 ---
 
-### Cómo elegir
+### Seleccion de modo al inicio de sesion
+
+Al iniciar una sesion nueva, si no hay contexto claro, Claude pregunta:
+
+> **"¿Qué estás construyendo?"**
+> ```
+> 1. FAST    — Un cambio pequeño (fix, estilo, 1-2 archivos)
+> 2. LAUNCH  — Algo nuevo desde cero (MVP, prototipo)
+> 3. QUALITY — Feature para produccion (DB, auth, pagos, usuarios reales)
+> ```
+>
+> Si es un proyecto nuevo sin `project-context.md`, el modo por defecto es **LAUNCH**.
+
+### Tabla de decision
 
 | Señal | Modo |
 |-------|------|
-| Prototipo / exploración | FAST |
-| Cambio < 30 líneas, sin DB | FAST |
-| MVP que va a usuarios reales | QUALITY |
-| Feature con DB / auth / pagos | QUALITY siempre |
-| Bug crítico en producción | QUALITY (Hotfix pipeline) |
+| Proyecto nuevo desde cero | **LAUNCH** (default) |
+| MVP / prototipo / demo | **LAUNCH** |
+| Cambio de 1-2 archivos sin DB | FAST |
+| Fix de texto o estilo | FAST |
+| Feature que va a usuarios reales | QUALITY |
+| Tiene pagos o auth | QUALITY siempre |
+| Bug critico en produccion | QUALITY (Hotfix) |
 | Equipo de 2+ personas | QUALITY siempre |
 
-**Duda → QUALITY.** El costo de hacerlo bien es menor que el de reparar un bug en producción.
+**Duda → QUALITY.** El costo de hacerlo bien es menor que el de reparar un bug en produccion.
 
 ---
 

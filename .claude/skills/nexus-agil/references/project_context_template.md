@@ -1,178 +1,155 @@
-# Project Context Template — NexusAgil
-
-> Cada proyecto que usa NexusAgil define su Golden Path en este archivo.
-> Copia este template a tu proyecto y completalo.
-> NexusAgil lo lee en F0 para adaptar el pipeline al stack del proyecto.
+# project-context.md
+> Generado por NexusAgil F0 — Bootstrap de Proyecto
+> Actualizar cuando cambie el stack, arquitectura o guardrails.
 
 ---
 
-## Donde colocarlo
+## Proyecto
 
-Opciones (en orden de preferencia):
-1. `project-context.md` en la raiz del proyecto
-2. `.claude/project-context.md`
-3. Seccion en `CLAUDE.md` del proyecto
-
-NexusAgil busca en F0: primero `project-context.md`, luego `.claude/project-context.md`, luego `CLAUDE.md`.
-
----
-
-## Template
-
-```markdown
-# Project Context — [Nombre del Proyecto]
-
-> Fuente de verdad para el Golden Path de este proyecto.
-> NexusAgil lee este archivo en F0 para adaptar el pipeline.
+| Campo | Valor |
+|-------|-------|
+| **Nombre** | [nombre del proyecto] |
+| **Descripcion** | [que hace el proyecto en 1-2 oraciones] |
+| **Tipo** | web-app / api / mobile / cli / library / otro |
+| **Estado** | prototipo / desarrollo / produccion |
 
 ---
 
-## 1. Stack (Golden Path)
+## Stack
 
-| Capa | Tecnologia | Version | Notas |
-|------|------------|---------|-------|
-| Framework | [ej: Next.js, Django, Rails] | [version] | [notas] |
-| Lenguaje | [ej: TypeScript, Python, Ruby] | [version] | [notas] |
-| Estilos | [ej: Tailwind CSS, SCSS, CSS Modules] | [version] | [notas] |
-| Base de Datos | [ej: Supabase, PostgreSQL, MongoDB] | [version] | [notas] |
-| Auth | [ej: Supabase Auth, NextAuth, Auth0] | [version] | [notas] |
-| Validacion | [ej: Zod, Yup, class-validator] | [version] | [notas] |
-| Estado | [ej: Zustand, Redux, Context] | [version] | [notas] |
-| Testing | [ej: Vitest, Jest, Playwright] | [version] | [notas] |
-| AI (si aplica) | [ej: Vercel AI SDK, LangChain] | [version] | [notas] |
+> Completar solo con lo que EXISTE en el proyecto. No agregar lo que no esta instalado.
 
-> Solo las tecnologias listadas aqui estan permitidas. NO agregar dependencias fuera de esta tabla sin aprobacion explicita.
+| Capa | Tecnologia | Version |
+|------|-----------|---------|
+| Lenguaje | [ej: TypeScript, Python, Ruby, Go] | [version] |
+| Framework | [ej: Next.js, Rails, Django, FastAPI] | [version] |
+| Base de datos | [ej: PostgreSQL, MySQL, MongoDB, SQLite] | [version] |
+| ORM / Cliente DB | [ej: Prisma, ActiveRecord, SQLAlchemy, Supabase] | [version] |
+| Auth | [ej: Supabase Auth, Devise, JWT, NextAuth] | [version] |
+| Estilos | [ej: Tailwind, CSS Modules, Styled Components] | [version] |
+| Testing | [ej: Vitest, Jest, RSpec, pytest] | [version] |
+| Deploy | [ej: Vercel, Heroku, Railway, AWS] | - |
 
-## 2. Arquitectura de Carpetas
+---
+
+## Arquitectura de Carpetas
+
+> Describir solo la estructura real del proyecto (resultado de Glob en F0).
 
 ```
-[Estructura de carpetas del proyecto]
-Ejemplo:
-src/
-+-- app/                      # Rutas/paginas
-+-- features/                 # Organizadas por funcionalidad
-|   +-- [feature]/
-|       +-- components/
-|       +-- hooks/
-|       +-- services/
-|       +-- types/
-+-- shared/                   # Codigo reutilizable
-    +-- components/
-    +-- hooks/
-    +-- lib/
-    +-- types/
+[pegar estructura real aqui]
 ```
 
-> NexusAgil usa esta estructura para Codebase Grounding y generar SDDs.
+**Patron de arquitectura**: [feature-first / MVC / layered / monorepo / microservicios]
 
-## 3. Comandos
+---
 
-| Accion | Comando | Notas |
-|--------|---------|-------|
-| Dev server | [ej: npm run dev] | [notas: auto-port, etc.] |
-| Build | [ej: npm run build] | |
-| Typecheck | [ej: npm run typecheck] | |
-| Lint | [ej: npm run lint] | |
-| Tests | [ej: npm run test] | |
-| Full QA | [ej: npm run qa] | [o secuencia de comandos] |
+## Comandos
 
-> QA usa estos comandos en F4 para Quality Gates.
+```bash
+# Desarrollo
+[comando para levantar servidor local]
 
-## 4. Reglas de Codigo
+# Build produccion
+[comando de build]
 
-### Limites
-| Regla | Limite |
-|-------|--------|
-| Max lineas por archivo | [ej: 500] |
-| Max lineas por funcion | [ej: 50] |
-| Max parametros por funcion | [ej: 4] |
+# Tests
+[comando de tests unitarios]
+[comando de tests e2e — si existe]
 
-### Naming
-| Elemento | Convencion | Ejemplo |
-|----------|-----------|---------|
-| Variables/Funciones | [ej: camelCase] | `getUserName` |
-| Componentes | [ej: PascalCase] | `UserProfile` |
-| Constantes | [ej: UPPER_SNAKE_CASE] | `MAX_RETRIES` |
-| Archivos/Carpetas | [ej: kebab-case] | `user-profile.tsx` |
+# Lint / Typecheck
+[comando de lint]
+[comando de typecheck — si aplica]
 
-### Patrones obligatorios
-- [Patron 1: ej. "Server Actions con validacion Zod"]
-- [Patron 2: ej. "Componentes con interface Props"]
-- [Patron 3: ej. "Hooks custom con prefijo use"]
-
-### Prohibiciones
-- [Prohibicion 1: ej. "NO usar any en TypeScript"]
-- [Prohibicion 2: ej. "NO usar var, solo const/let"]
-- [Prohibicion 3: ej. "NO hardcodear configuraciones"]
-
-## 5. Guardrails
-
-> Reglas de negocio no negociables que aplican a TODO el proyecto.
-
-| # | Guardrail | Descripcion |
-|---|-----------|-------------|
-| 1 | [nombre] | [descripcion] |
-| 2 | [nombre] | [descripcion] |
-| 3 | [nombre] | [descripcion] |
-
-> Adversary verifica estos guardrails durante el Adversarial Review.
-
-## 6. Base de Datos
-
-### Configuracion
-- Tipo: [ej: PostgreSQL via Supabase]
-- RLS: [habilitado/deshabilitado]
-- Migraciones: [como se manejan]
-
-### Tablas principales
-| Tabla | Descripcion | RLS |
-|-------|-------------|-----|
-| [tabla] | [que almacena] | [si/no] |
-
-> Architect consulta esto durante Codebase Grounding en F2.
-
-## 7. Seguridad
-
-| Aspecto | Configuracion |
-|---------|---------------|
-| Auth | [como funciona: ej. Supabase Auth con email/password] |
-| Sesiones | [donde se almacenan, expiracion] |
-| CORS | [configuracion] |
-| Rate Limiting | [donde aplica, herramienta] |
-| Secrets | [donde se almacenan: ej. env vars, Vercel] |
-
-> Adversary usa esto durante el Adversarial Review.
-
-## 8. Patrones de Componente (Exemplars)
-
-> Archivos que sirven como patron para crear archivos nuevos.
-
-| Tipo de archivo | Exemplar | Patron clave |
-|----------------|----------|-------------|
-| Componente UI | `[path/to/exemplar]` | [patron: imports, props, exports] |
-| Server Action | `[path/to/exemplar]` | [patron: validacion, auth, response] |
-| Hook custom | `[path/to/exemplar]` | [patron: state, effects, return] |
-| Test | `[path/to/exemplar]` | [patron: arrange, act, assert] |
-| Pagina/Ruta | `[path/to/exemplar]` | [patron: layout, data fetching] |
-
-> Architect usa estos exemplars para Codebase Grounding y Story Files.
-
-## 9. Aprendizajes (Auto-Blindaje)
-
-> Errores documentados que aplican a todo el proyecto.
-
-### [YYYY-MM-DD]: [Titulo corto]
-- **Error**: [Que fallo]
-- **Fix**: [Como se arreglo]
-- **Aplicar en**: [Donde mas aplica]
+# Base de datos
+[comando de migraciones — si aplica]
+[comando de seed — si aplica]
 ```
 
 ---
 
-## Reglas del Project Context
+## Patrones de Codigo
 
-1. **Fuente de verdad**: Si hay conflicto entre project-context y otro archivo, project-context gana.
-2. **Actualizar al evolucionar**: Cuando el stack cambia, actualizar este archivo.
-3. **No inventar**: Si el proyecto no tiene un aspecto (ej. no tiene BD), dejar la seccion vacia o N/A.
-4. **Exemplars vivos**: Verificar que los archivos de referencia existen antes de usarlos.
-5. **Auto-Blindaje aqui**: Errores que aplican a todo el proyecto se documentan en seccion 9.
+> Extraidos del codebase real en F0. Actualizar si cambian los patrones.
+
+### Patron de componente / modulo
+```
+[pegar ejemplo real del proyecto]
+```
+
+### Patron de manejo de errores
+```
+[pegar ejemplo real del proyecto]
+```
+
+### Patron de acceso a base de datos
+```
+[pegar ejemplo real del proyecto]
+```
+
+### Patron de auth / autorizacion
+```
+[pegar ejemplo real del proyecto]
+```
+
+---
+
+## Exemplars
+
+> Archivos del proyecto a usar como referencia para nuevas implementaciones.
+> El Dev DEBE leer estos archivos antes de implementar algo similar.
+
+| Cuando crear... | Usar como exemplar |
+|----------------|-------------------|
+| [tipo de archivo] | [ruta/archivo.ext] |
+| [tipo de archivo] | [ruta/archivo.ext] |
+
+---
+
+## Guardrails (Reglas del Proyecto)
+
+### OBLIGATORIO
+- [regla especifica del proyecto]
+- [ej: Siempre usar el cliente de BD centralizado, no instanciar directamente]
+- [ej: Toda ruta protegida debe verificar auth en el middleware]
+
+### PROHIBIDO
+- [ej: NUNCA usar any en TypeScript]
+- [ej: NUNCA hardcodear URLs o keys — usar variables de entorno]
+- [ej: NUNCA saltarse las migraciones — no modificar schema directamente]
+- [ej: NUNCA subir secrets al repositorio]
+
+---
+
+## Variables de Entorno
+
+> Solo nombres — nunca valores.
+
+```
+[NOMBRE_VAR_1] — descripcion de para que se usa
+[NOMBRE_VAR_2] — descripcion de para que se usa
+```
+
+---
+
+## Contexto de Negocio
+
+> Lo minimo necesario para que el Architect tome decisiones correctas.
+
+- **Usuarios objetivo**: [quien usa el producto]
+- **Flujo principal**: [que hace el usuario tipicamente]
+- **Integraciones externas**: [APIs de terceros que usa el proyecto]
+
+---
+
+## Auto-Blindaje
+
+> Errores encontrados durante el desarrollo. Se actualiza cuando ocurre un error, no al final.
+
+| Fecha | Error | Fix | Aplicar en |
+|-------|-------|-----|-----------|
+| [YYYY-MM-DD] | [que fallo] | [como se arreglo] | [donde mas aplica] |
+
+---
+
+*Generado por NexusAgil F0 Bootstrap — actualizar con cada cambio significativo al stack*

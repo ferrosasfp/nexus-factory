@@ -1,18 +1,19 @@
 ---
 name: nexus-agil
 description: >
-  Metodologia unificada WasiAI para procesar Historias de Usuario (HU) a traves de un pipeline
+  Metodologia stack-agnostic para procesar Historias de Usuario (HU) a traves de un pipeline
   con agentes especializados, gates estrictos, adversarial review y anti-alucinacion.
+  Funciona con cualquier stack: Next.js, Rails, Django, Laravel o cualquier otro.
   Activar cuando el usuario mencione "NexusAgil", "procesa HU", "sprint planning",
   "inicia fase 0", "adversarial review", o "story file".
 ---
 
-# NexusAgil — WasiAI Methodology
+# NexusAgil
 
 > **Unidad de trabajo**: 1 HU por ejecucion.
 > **Principio**: El humano decide QUE. Los agentes ejecutan COMO.
 > **Anti-alucinacion**: Leer codigo real antes de generar. Nunca inventar.
-> **Stack-agnostic**: El Golden Path se define por proyecto en `project-context.md`.
+> **Stack-agnostic**: NexusAgil no asume ningun stack. F0 descubre el proyecto real y genera `project-context.md`.
 
 ---
 
@@ -175,7 +176,8 @@ Antes de usar cualquier archivo como exemplar, el agente DEBE:
 ### Archivos de referencia obligatorios
 
 Antes de F2, leer al menos:
-- `project-context.md` o equivalente del proyecto — Stack, arquitectura, guardrails
+- `project-context.md` — generado en F0 (Bootstrap si es proyecto nuevo), contiene stack real, arquitectura, guardrails y exemplars
+  Si no existe al llegar aqui: DETENER y ejecutar Bootstrap de Proyecto (F0) primero
 - Archivos de la feature mas similar a la HU actual (2-3 minimo)
 
 ### Lo que NUNCA se debe hacer
@@ -193,11 +195,9 @@ Antes de F2, leer al menos:
 
 ### Proceso
 
-1. **Leer `project-context.md`** (o equivalente) para conocer:
-   - Stack del proyecto (Golden Path)
-   - Arquitectura de carpetas
-   - Comandos de build/test/lint
-   - Guardrails y reglas especificas
+1. **Verificar si existe `project-context.md`**:
+   - **Si existe**: leerlo para conocer stack, arquitectura, comandos, guardrails y exemplars
+   - **Si NO existe**: ejecutar **Bootstrap de Proyecto** (ver seccion siguiente) antes de continuar
 2. **Codebase Grounding inicial**: Explorar la estructura del proyecto con Glob/Grep
 3. **Leer `doc/sdd/_INDEX.md`** para siguiente NNN. Si no existe, crearlo.
 4. **Smart Sizing** — Clasificar la HU:
@@ -212,6 +212,40 @@ Antes de F2, leer al menos:
 
 5. Si SDD_MODE = **patch** → Derivar a Triage (Quick Flow). Ver `references/quick_flow.md`.
 6. Si no es patch → Continuar a F1.
+
+### Bootstrap de Proyecto (ejecutar solo cuando NO existe project-context.md)
+
+NexusAgil es stack-agnostic. No asume ningun framework ni lenguaje.
+Si no hay project-context.md, el Architect descubre el proyecto leyendo el codebase real.
+
+Checklist de descubrimiento (leer en orden):
+
+1. Archivo de dependencias: package.json / Gemfile / requirements.txt / go.mod / pom.xml
+   Extraer: lenguaje principal, framework, dependencias clave
+
+2. Estructura de carpetas (Glob recursivo desde raiz, profundidad 3)
+   Identificar: arquitectura (MVC, feature-first, monorepo, microservicios, etc.)
+
+3. 3-5 archivos representativos del area de negocio principal
+   Extraer: naming conventions, patron de imports, estructura de funciones, manejo de errores
+
+4. Comandos del proyecto: build, test, lint, dev server
+   Fuente: scripts en package.json, Makefile, README, o equivalente del stack
+
+5. Base de datos y ORM si existe
+   Fuente: schema files, migraciones, cliente (Supabase, Prisma, ActiveRecord, SQLAlchemy...)
+
+6. Sistema de auth si existe
+   Fuente: middleware, guards, JWT config, sessions config
+
+7. Guardrails del proyecto si existen
+   Fuente: .eslintrc, .rubocop.yml, linters, convenciones en README
+
+Despues del checklist: generar project-context.md usando references/project_context_template.md
+como base, llenado exclusivamente con lo descubierto. Escribir al disco antes de continuar.
+
+Confirmar al humano: "Contexto generado. Stack: X. Arquitectura: Y. Comandos: Z. Listo para HUs."
+Si hay ambiguedades criticas: preguntar al humano (max 3 preguntas) antes de continuar.
 
 ---
 

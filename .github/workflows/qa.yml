@@ -1,0 +1,178 @@
+# .github/workflows/qa.yml
+# Pipeline de QA para NexusFactory.
+#
+# Corre en cada push a main y en cada PR hacia main.
+# Valida: tipos, lint, tests unitarios y build de producción.
+#
+# Variables de entorno requeridas:
+#   - Secrets de Supabase (pueden ser mocks en CI)
+#   - SENTRY_AUTH_TOKEN (opcional — si no está, los source maps no se suben)
+
+name: QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  qa:
+    name: Typecheck · Lint · Test · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout del repositorio
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Setup de Node.js 22 con cache integrado
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # 3. Cache de node_modules para acelerar builds sucesivos
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        id: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      # 4. Instalar dependencias (solo si el cache no aplica)
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
+
+      # 5. Verificación de tipos TypeScript
+      - name: Typecheck
+        run: npm run typecheck
+        env:
+          # Variables mínimas para que TypeScript compile sin errores
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+      # 6. Lint con ESLint (0 warnings tolerados)
+      - name: Lint
+        run: npm run lint
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+      # 7. Tests unitarios con Vitest
+      - name: Test
+        run: npm run test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+
+      # 8. Build de producción
+      # SENTRY_AUTH_TOKEN es opcional: si no está, el build pasa pero
+      # no se suben source maps a Sentry.
+      - name: Build
+        id: build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://mock.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
+          NEXT_PUBLIC_SITE_URL: http://localhost:3000
+          # Sentry: opcional en CI. Configurar el secret en GitHub para subir source maps.
+          # Settings → Secrets → Actions → New secret: SENTRY_AUTH_TOKEN
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+
+      # 9. En PRs: comentar el resultado del build como check de status
+      - name: Comment PR — Build passed
+        if: github.event_name == 'pull_request' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+
+            // Actualiza comentario existente si ya existe, sino crea uno nuevo
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('<!-- nexus-qa-bot -->')
+            )
+
+            const body = [
+              '<!-- nexus-qa-bot -->',
+              '## ✅ QA Passed',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              '| TypeScript | ✅ No errors |',
+              '| ESLint | ✅ No warnings |',
+              '| Vitest | ✅ All tests pass |',
+              '| Build | ✅ Production build OK |',
+              '',
+              `Commit: ${context.sha.slice(0, 7)}`,
+            ].join('\n')
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }
+
+      - name: Comment PR — Build failed
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('<!-- nexus-qa-bot -->')
+            )
+
+            const body = [
+              '<!-- nexus-qa-bot -->',
+              '## ❌ QA Failed',
+              '',
+              'Uno o más checks fallaron. Revisa los logs del workflow para más detalles.',
+              '',
+              `Commit: ${context.sha.slice(0, 7)}`,
+            ].join('\n')
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              })
+            }

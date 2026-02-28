@@ -1,5 +1,18 @@
+/**
+ * src/app/global-error.tsx
+ * Error boundary global de Next.js App Router.
+ *
+ * Captura errores no controlados en el layout raíz y los reporta a Sentry.
+ * Se renderiza en lugar del layout cuando ocurre un error crítico.
+ *
+ * Docs: https://nextjs.org/docs/app/api-reference/file-conventions/error#global-errorjs
+ * Requiere: npm install @sentry/nextjs
+ */
+
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
+import NextError from 'next/error'
 import { useEffect } from 'react'
 
 interface GlobalErrorProps {
@@ -9,84 +22,48 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    console.error('Global error:', error)
+    // Reporta el error a Sentry si está configurado
+    if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+      Sentry.captureException(error)
+    }
   }, [error])
 
   return (
-    <html>
+    <html lang="en">
       <body>
-        <div style={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: '#f9fafb',
-          padding: '1rem',
-        }}>
-          <div style={{
-            maxWidth: '28rem',
-            width: '100%',
-            textAlign: 'center',
-          }}>
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{
-                margin: '0 auto',
-                width: '4rem',
-                height: '4rem',
-                backgroundColor: '#fee2e2',
-                borderRadius: '9999px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <svg
-                  style={{ width: '2rem', height: '2rem', color: '#dc2626' }}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-            </div>
+        {/* Usa el componente de error de Next.js como fallback visual */}
+        <NextError statusCode={500} />
 
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: '#111827',
-              marginBottom: '0.5rem',
-            }}>
-              Something went wrong
-            </h2>
-
-            <p style={{
+        {/* Botón para intentar recuperarse del error */}
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+            {error.digest ? `Error ID: ${error.digest}` : 'An unexpected error occurred'}
+          </p>
+          <button
+            onClick={reset}
+            style={{
+              padding: '0.5rem 1.5rem',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
               fontSize: '0.875rem',
-              color: '#6b7280',
-              marginBottom: '1.5rem',
-            }}>
-              A critical error occurred. Please try again.
-            </p>
-
-            <button
-              onClick={reset}
-              style={{
-                padding: '0.5rem 1.5rem',
-                backgroundColor: '#2563eb',
-                color: 'white',
-                borderRadius: '0.5rem',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '1rem',
-              }}
-            >
-              Try again
-            </button>
-          </div>
+            }}
+          >
+            Try again
+          </button>
         </div>
       </body>
     </html>

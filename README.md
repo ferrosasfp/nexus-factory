@@ -49,9 +49,17 @@ New project without `project-context.md` → LAUNCH by default.
 | **Auto-Blindaje** | Errors repeating across sessions |
 | **Gates** | AI assuming the human approved something they didn't read |
 
-**The 2 Gates (QUALITY mode):**
-- `HU_APPROVED` — human has read the Work Item. "ok"/"go"/"sure" do NOT count.
-- `SPEC_APPROVED` — human has read the SDD. "implement it" does NOT count.
+**Gates:**
+
+| Gate | Context | Effect |
+|---|---|---|
+| `HU_APPROVED` | After F1 Work Item | Architect starts F2 SDD |
+| `SPEC_APPROVED` | After F2 SDD | Architect generates Story File (F2.5) |
+| `SPRINT_APPROVED` | After Sprint Planning | SM commits, Architect starts F0 |
+| `REVIEW_APPROVED` | After Status Meeting | SM commits status, pipeline continues |
+| `RETRO_APPROVED` | After Retrospective | SM runs Closure Checklist, sprint CLOSED |
+
+"yes", "ok", "go", "sure" → do NOT activate any gate. Exact text only.
 
 ### Sprint Closure Checklist (SM)
 

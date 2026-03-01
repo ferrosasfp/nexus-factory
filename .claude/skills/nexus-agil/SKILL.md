@@ -27,6 +27,18 @@ description: >
 6. **Adversarial Review** — Despues de implementar, un agente adversario ataca la solucion antes de aprobarla.
 7. **Auto-Blindaje** — Cada error refuerza el proceso. Se documenta cuando ocurre, no al final.
 
+## Tabla de Gates
+
+| Gate | Texto exacto | Contexto | Efecto |
+|------|-------------|----------|--------|
+| `HU_APPROVED` | `HU_APPROVED` | Despues de F1 Work Item | Architect arranca F2 SDD |
+| `SPEC_APPROVED` | `SPEC_APPROVED` | Despues de F2 SDD | Architect genera Story File (F2.5) |
+| `SPRINT_APPROVED` | `SPRINT_APPROVED` | Despues de Sprint Planning | SM commitea, Architect arranca F0 |
+| `REVIEW_APPROVED` | `REVIEW_APPROVED` | Despues de Status Meeting | SM commitea status, pipeline continua |
+| `RETRO_APPROVED` | `RETRO_APPROVED` | Despues de Retrospectiva | SM ejecuta Checklist de Cierre, sprint CERRADO |
+
+> **Regla universal:** Solo el texto exacto activa el gate. "si", "ok", "dale", "go", "avanza" → NO activan ningun gate.
+
 ---
 
 ## Los 3 Modos de NexusAgil

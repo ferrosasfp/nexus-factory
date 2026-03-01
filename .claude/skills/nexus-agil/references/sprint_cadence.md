@@ -3,6 +3,17 @@
 > SM (Scrum Master) facilita tres ceremonias semanales.
 > Activar con: "sprint planning", "status meeting", "retro", "ceremonia de [dia]".
 
+## Gates de Ceremonia
+
+| Ceremonia | Gate | Texto exacto | Efecto |
+|-----------|------|-------------|--------|
+| Planning | `SPRINT_APPROVED` | El humano escribe exactamente esto | SM commitea artefactos, Architect arranca F0 de la primera HU |
+| Status | `REVIEW_APPROVED` | El humano escribe exactamente esto | SM commitea status, pipeline continua |
+| Retrospectiva | `RETRO_APPROVED` | El humano escribe exactamente esto | SM ejecuta Checklist de Cierre y declara sprint CERRADO |
+
+> **Regla:** "sí", "ok", "dale", "bien" **NO** activan ningún gate. El humano debe escribir el texto exacto.
+> **`HU_APPROVED` y `SPEC_APPROVED` son exclusivos del pipeline de HUs — nunca de ceremonias.**
+
 ---
 
 ## Calendario Semanal
@@ -47,8 +58,9 @@
 - [ ] HU: [titulo] — [tipo] — [estimacion]
 ```
 
-4. **Esperar aprobacion del humano** sobre la seleccion
-5. **Si hay dudas sobre una HU**: Analyst puede intervenir para clarificar requisitos
+4. **Esperar `SPRINT_APPROVED`** del humano — texto exacto, sin excepciones
+5. **Al recibir `SPRINT_APPROVED`**: commitear `sprint-status.yaml` + `roadmap-sprints.md`, actualizar issue tracker, notificar al Architect para arrancar F0
+6. **Si hay dudas sobre una HU**: Analyst puede intervenir para clarificar requisitos
 
 ### Estimacion de Sizing
 
@@ -91,8 +103,10 @@
 - HUs bloqueadas: N
 ```
 
-4. **Si hay bloqueos**: Proponer soluciones o escalar al humano
-5. **Ajustar plan si es necesario**: Repriorizar, mover HUs al siguiente sprint
+4. **Esperar `REVIEW_APPROVED`** del humano — texto exacto, sin excepciones
+5. **Al recibir `REVIEW_APPROVED`**: commitear status actualizado, pipeline continua
+6. **Si hay bloqueos**: Proponer soluciones o escalar al humano
+7. **Ajustar plan si es necesario**: Repriorizar, mover HUs al siguiente sprint
 
 ---
 
@@ -143,8 +157,9 @@
 ```
 
 4. **Auto-Blindaje a reglas del proyecto**: Si un error se repitio en multiples HUs, SM propone agregarlo a `project-context.md` o reglas del proyecto
-5. **Cierre formal del sprint**: SM ejecuta el checklist de cierre antes de declarar el sprint CERRADO
-6. **Celebracion**: Si el sprint fue limpio (sin BLOQUEANTE, sin drift grave), Party Mode breve
+5. **Esperar `RETRO_APPROVED`** del humano — texto exacto, sin excepciones
+6. **Al recibir `RETRO_APPROVED`**: SM ejecuta el Checklist de Cierre de Sprint y declara sprint CERRADO
+7. **Celebracion**: Si el sprint fue limpio (sin BLOQUEANTE, sin drift grave), Party Mode breve
 
 ---
 

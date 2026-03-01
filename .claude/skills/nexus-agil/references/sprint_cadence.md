@@ -143,7 +143,51 @@
 ```
 
 4. **Auto-Blindaje a reglas del proyecto**: Si un error se repitio en multiples HUs, SM propone agregarlo a `project-context.md` o reglas del proyecto
-5. **Celebracion**: Si el sprint fue limpio (sin BLOQUEANTE, sin drift grave), Party Mode breve
+5. **Cierre formal del sprint**: SM ejecuta el checklist de cierre antes de declarar el sprint CERRADO
+6. **Celebracion**: Si el sprint fue limpio (sin BLOQUEANTE, sin drift grave), Party Mode breve
+
+---
+
+## Checklist de Cierre de Sprint (SM)
+
+> Ejecutar al finalizar la Retrospectiva. El sprint no es CERRADO hasta que todo este marcado.
+
+```
+[ ] _INDEX.md — todos los NNN del sprint tienen status DONE/CARRY-OVER/CANCELLED/ABORTED
+[ ] sprint-status.yaml — estado: CERRADO, completadas, carry_over y deuda_tecnica_nueva documentados
+[ ] Issue tracker — todos los issues del sprint en Done/Closed en Linear/GitHub/Jira
+[ ] project-context.md — actualizado con ADRs nuevos y reglas de proceso del Auto-Blindaje
+[ ] git commit + push — todos los artefactos de cierre commiteados
+```
+
+### sprint-status.yaml — Formato
+
+```yaml
+sprint: N
+periodo: "YYYY-MM-DD → YYYY-MM-DD"
+estado: CERRADO
+goal: "descripcion del goal"
+goal_cumplido: true/false/parcial
+
+completadas:
+  - id: WAS-XX
+    hu: Titulo de la HU
+    modo: FAST/QUALITY
+    estado: DONE
+    commit: abc1234
+
+carry_over:
+  - id: WAS-XX
+    hu: Titulo
+    razon: Motivo del carry-over
+
+deuda_tecnica_nueva:
+  - descripcion: Descripcion de la deuda
+    severidad: MENOR/MAYOR
+    sprint_objetivo: N
+
+proxima_ceremonia: "Descripcion"
+```
 
 ---
 

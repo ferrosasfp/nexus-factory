@@ -53,6 +53,18 @@ New project without `project-context.md` → LAUNCH by default.
 - `HU_APPROVED` — human has read the Work Item. "ok"/"go"/"sure" do NOT count.
 - `SPEC_APPROVED` — human has read the SDD. "implement it" does NOT count.
 
+### Sprint Closure Checklist (SM)
+
+The SM runs this checklist before declaring any sprint CLOSED:
+
+```
+[ ] _INDEX.md       — all NNNs have status DONE / CARRY-OVER / CANCELLED / ABORTED
+[ ] sprint-status.yaml — estado: CERRADO, completadas and deuda_tecnica documented
+[ ] Issue tracker   — all sprint issues closed in Linear / GitHub Issues / Jira
+[ ] project-context.md — new ADRs and Auto-Blindaje rules added
+[ ] git commit + push — all closure artifacts committed
+```
+
 See `.claude/skills/nexus-agil/SKILL.md` for the full pipeline and all 9 agents.
 Full methodology documentation → [NexusAgil repo](https://github.com/ferrosasfp/NexusAgile)
 

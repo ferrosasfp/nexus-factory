@@ -785,10 +785,11 @@ Escribir en `doc/sdd/NNN-titulo/validation.md`.
    - Auto-Blindaje acumulado
 2. Escribir en `doc/sdd/NNN-titulo/report.md`
 3. Actualizar `doc/sdd/_INDEX.md` con status DONE
-4. Presentar resumen al humano
+4. Cerrar en el issue tracker del proyecto (Linear, GitHub Issues, Jira, o el configurado en `project-context.md`) — mover el issue a Done/Closed
+5. Presentar resumen al humano
 
 ### Abort
-Si el humano aborta en cualquier punto: Docs actualiza _INDEX.md con status ABORTED.
+Si el humano aborta en cualquier punto: Docs actualiza _INDEX.md con status ABORTED y cierra el issue en el tracker como CANCELLED.
 
 ---
 

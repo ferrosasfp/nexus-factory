@@ -61,6 +61,14 @@ New project without `project-context.md` → LAUNCH by default.
 
 "yes", "ok", "go", "sure" → do NOT activate any gate. Exact text only.
 
+### Sprint Planning — SM responsibilities
+
+During Planning, the SM must:
+1. Review backlog and velocity from previous sprint
+2. **Analyze dependencies between selected HUs** — identify which are independent and can run F1 in parallel
+3. Present parallelism proposal to the human before `SPRINT_APPROVED`
+4. After `SPRINT_APPROVED`: start F1 for all parallel HUs simultaneously
+
 ### Sprint Closure Checklist (SM)
 
 The SM runs this checklist before declaring any sprint CLOSED:

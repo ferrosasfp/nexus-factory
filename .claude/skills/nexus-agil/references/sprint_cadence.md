@@ -58,9 +58,13 @@
 - [ ] HU: [titulo] — [tipo] — [estimacion]
 ```
 
-4. **Esperar `SPRINT_APPROVED`** del humano — texto exacto, sin excepciones
-5. **Al recibir `SPRINT_APPROVED`**: commitear `sprint-status.yaml` + `roadmap-sprints.md`, actualizar issue tracker, notificar al Architect para arrancar F0
-6. **Si hay dudas sobre una HU**: Analyst puede intervenir para clarificar requisitos
+4. **Analizar dependencias entre HUs seleccionadas**: identificar cuáles son independientes entre sí y pueden ejecutar F1 en paralelo. Presentar al humano:
+   - HUs que pueden ir en paralelo (dominios distintos, sin dependencias)
+   - HUs que deben ir en secuencia (una depende del output de otra)
+   - Orden de ejecución propuesto para el sprint
+5. **Esperar `SPRINT_APPROVED`** del humano — texto exacto, sin excepciones
+6. **Al recibir `SPRINT_APPROVED`**: commitear `sprint-status.yaml` + `roadmap-sprints.md`, actualizar issue tracker, arrancar F1 de todas las HUs paralelas simultáneamente
+7. **Si hay dudas sobre una HU**: Analyst puede intervenir para clarificar requisitos
 
 ### Estimacion de Sizing
 

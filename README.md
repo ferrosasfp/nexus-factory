@@ -61,6 +61,8 @@ New project without `project-context.md` → LAUNCH by default.
 
 "yes", "ok", "go", "sure" → do NOT activate any gate. Exact text only.
 
+**Flow rule:** Between gates, the pipeline runs automatically — no asking "shall I continue?" between phases. Only stop at the 5 formal gates.
+
 ### Sprint Planning — SM responsibilities
 
 During Planning, the SM:

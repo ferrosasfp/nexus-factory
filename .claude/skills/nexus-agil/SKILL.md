@@ -24,6 +24,7 @@ description: >
 3. **Anti-Alucinacion** — Codebase Grounding obligatorio. Leer codigo real, extraer patrones reales, referenciar archivos existentes. Nunca inventar.
 4. **Agentes Especializados** — Cada fase tiene agentes asignados con roles claros. Los roles NO se mezclan (ver Agent Roster).
 5. **Gates Estrictos** — No se avanza sin aprobacion humana explicita en los gates.
+   **Entre gates, el pipeline corre solo.** El agente NO pide permiso para pasar de F0→F1, F2→F2.5, F3→AR, AR→CR, CR→QA, QA→Docs. Solo se detiene en los 5 gates formales. Preguntar "¿continúo?" entre fases es un error de proceso.
 6. **Adversarial Review** — Despues de implementar, un agente adversario ataca la solucion antes de aprobarla.
 7. **Auto-Blindaje** — Cada error refuerza el proceso. Se documenta cuando ocurre, no al final.
 
@@ -38,6 +39,7 @@ description: >
 | `RETRO_APPROVED` | `RETRO_APPROVED` | Despues de Retrospectiva | SM ejecuta Checklist de Cierre, sprint CERRADO |
 
 > **Regla universal:** Solo el texto exacto activa el gate. "si", "ok", "dale", "go", "avanza" → NO activan ningun gate.
+> **Regla de flujo:** Entre gates, el pipeline avanza automáticamente. El agente nunca pregunta "¿continúo?" ni "¿arrancamos?" entre fases. Si el humano responde "sí" a algo que no era un gate, es señal de que el agente preguntó innecesariamente — error de proceso.
 
 ---
 
@@ -245,16 +247,16 @@ HU (cualquier formato)
     |
     v
 [ F3: Implementacion ] -------- Dev SOLO desde Story File, waves, anti-hallucination
-    |
+    |                              ↓ AUTOMATICO — no pedir permiso
     v
 [ Adversarial Review ] -------- Adversary ataca la solucion (BLOQUEANTE/MENOR/OK)
-    |
+    |                              ↓ AUTOMATICO — no pedir permiso
     v
 [ Code Review ] --------------- Adversary+QA: calidad de codigo
-    |
+    |                              ↓ AUTOMATICO — no pedir permiso
     v
 [ F4: QA/Validacion ] --------- QA: drift detection + ACs con evidencia + quality gates
-    |
+    |                              ↓ AUTOMATICO — no pedir permiso
     v
 [ Build + Push ] --------------- Docs documenta + actualiza _INDEX.md
     |

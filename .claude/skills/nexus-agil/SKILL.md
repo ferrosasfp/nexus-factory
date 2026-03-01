@@ -31,9 +31,9 @@ description: >
 
 | Gate | Texto exacto | Contexto | Efecto |
 |------|-------------|----------|--------|
-| `HU_APPROVED` | `HU_APPROVED` | Despues de F1 Work Item | Architect arranca F2 SDD |
+| `HU_APPROVED` | `HU_APPROVED` | Despues de F1 Work Items + propuesta de paralelismo | Architect arranca F2 SDD (paralelo donde aplique) |
 | `SPEC_APPROVED` | `SPEC_APPROVED` | Despues de F2 SDD | Architect genera Story File (F2.5) |
-| `SPRINT_APPROVED` | `SPRINT_APPROVED` | Despues de Sprint Planning | SM commitea, Architect arranca F0 |
+| `SPRINT_APPROVED` | `SPRINT_APPROVED` | Despues de Sprint Planning | SM commitea artefactos, Architect arranca F0+F1 de todas las HUs del sprint |
 | `REVIEW_APPROVED` | `REVIEW_APPROVED` | Despues de Status Meeting | SM commitea status, pipeline continua |
 | `RETRO_APPROVED` | `RETRO_APPROVED` | Despues de Retrospectiva | SM ejecuta Checklist de Cierre, sprint CERRADO |
 
@@ -226,6 +226,7 @@ HU (cualquier formato)
     |
     v
 [ F1: Discovery ] ------------- Analyst+Architect+UX: Work Item + ACs EARS + scope
+                               + análisis de dependencias + propuesta de paralelismo
     |
     v
 [ GATE 1: HU_APPROVED ] -------- Humano escribe texto exacto HU_APPROVED
@@ -457,6 +458,28 @@ fix/NNN-titulo-kebab
 refactor/NNN-titulo-kebab
 ```
 Preguntar: "Creo branch `{branch}`? (si/no/otro nombre)"
+
+### Análisis de Dependencias y Paralelismo (cuando hay múltiples HUs en el sprint)
+
+Después de presentar todos los Work Items del sprint, el Architect analiza y presenta:
+
+```markdown
+## Propuesta de ejecución — Sprint N
+
+### HUs en paralelo (dominios independientes, sin conflictos de archivos)
+- WAS-XX: [titulo]
+- WAS-YY: [titulo]
+
+### HUs en secuencia (dependencias o conflictos)
+- WAS-ZZ: [titulo] → depende de WAS-XX porque [razon]
+
+### Orden propuesto
+1. Paralelo: WAS-XX + WAS-YY (F2 simultáneo)
+2. Secuencial: WAS-ZZ (después de WAS-XX)
+```
+
+**El humano aprueba los Work Items Y el orden de ejecución con un solo `HU_APPROVED`.**
+Si el humano modifica el orden, el Architect actualiza la propuesta antes de continuar a F2.
 
 ### GATE 1: HU_APPROVED
 Presentar Work Item al humano. Esperar el texto exacto **HU_APPROVED**.

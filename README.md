@@ -53,7 +53,7 @@ New project without `project-context.md` → LAUNCH by default.
 
 | Gate | Context | Effect |
 |---|---|---|
-| `HU_APPROVED` | After F1 Work Item | Architect starts F2 SDD |
+| `HU_APPROVED` | After F1 Work Items + parallelism proposal | Architect starts F2 SDD (parallel where applicable) |
 | `SPEC_APPROVED` | After F2 SDD | Architect generates Story File (F2.5) |
 | `SPRINT_APPROVED` | After Sprint Planning | SM commits, Architect starts F0 |
 | `REVIEW_APPROVED` | After Status Meeting | SM commits status, pipeline continues |
@@ -63,11 +63,12 @@ New project without `project-context.md` → LAUNCH by default.
 
 ### Sprint Planning — SM responsibilities
 
-During Planning, the SM must:
-1. Review backlog and velocity from previous sprint
-2. **Analyze dependencies between selected HUs** — identify which are independent and can run F1 in parallel
-3. Present parallelism proposal to the human before `SPRINT_APPROVED`
-4. After `SPRINT_APPROVED`: start F1 for all parallel HUs simultaneously
+During Planning, the SM:
+1. Reviews backlog and velocity from previous sprint
+2. Presents selected HUs with sizing and goal
+3. Waits for `SPRINT_APPROVED` — then commits artifacts and hands off to Architect
+
+> **Dependency analysis and parallelism proposal is the Architect's responsibility in F1** — not the SM's. The SM selects; the Architect decides what can run in parallel based on the real codebase.
 
 ### Sprint Closure Checklist (SM)
 

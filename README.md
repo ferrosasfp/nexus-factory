@@ -18,13 +18,13 @@ create-nexus my-project hybrid   # Web2 + Web3 app
 
 ---
 
-## Included Methodology: NexusAgil
+## Included Methodology: Nexus Agile
 
 NexusFactory ships with **NexusAgil** preinstalled — the AI-assisted development methodology, anti-hallucination by design.
 
 > The NexusAgil included in NexusFactory is **stack-aware**: it already knows the Golden Path (Next.js, Supabase, Viem, Foundry). The `project-context.md` comes pre-configured — no bootstrap needed.
 >
-> The standalone [NexusAgil repo](https://github.com/ferrosasfp/NexusAgile) is **stack-agnostic**: it studies any project's stack at the beginning of each session to generate `project-context.md` from scratch.
+> The standalone [NexusAgil repo](https://github.com/ferrosasfp/nexus-agile) is **stack-agnostic**: it studies any project's stack at the beginning of each session to generate `project-context.md` from scratch.
 
 ### 3 Work Modes
 

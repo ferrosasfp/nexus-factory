@@ -1,4 +1,4 @@
-# NexusFactory
+# Nexus Factory
 
 **The bridge between Web2 and Web3.** Universal base for modern applications with Next.js + Supabase, extensible to blockchain EVM with a single CLI.
 

@@ -92,9 +92,7 @@ describe('ContractWriter', () => {
     fireEvent.submit(form)
 
     // Assert
-    expect(
-      screen.getByText('Invalid JSON format. Please check your arguments.')
-    ).toBeInTheDocument()
+    expect(screen.getByText('invalidJson')).toBeInTheDocument()
     expect(mockWrite).not.toHaveBeenCalled()
   })
 })

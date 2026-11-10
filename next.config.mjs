@@ -1,5 +1,5 @@
 import createNextIntlPlugin from 'next-intl/plugin'
-import { withSentryConfig } from '@sentry/nextjs'
+import { withSentryConfig } from '@sentry/nextjs/config'
 
 const withNextIntl = createNextIntlPlugin()
 
@@ -26,30 +26,21 @@ const nextIntlConfig = withNextIntl(nextConfig)
  * Requiere: npm install @sentry/nextjs
  */
 export default withSentryConfig(nextIntlConfig, {
-  // Organización en sentry.io (SENTRY_ORG en .env)
+  // Organización y proyecto en sentry.io (SENTRY_ORG / SENTRY_PROJECT en .env)
   org: process.env.SENTRY_ORG,
-
-  // Proyecto en sentry.io (SENTRY_PROJECT en .env)
   project: process.env.SENTRY_PROJECT,
 
-  // Auth token para subir source maps (SENTRY_AUTH_TOKEN en .env)
-  // Obtener en: https://sentry.io/settings/account/api/auth-tokens/
+  // Token para subir source maps (SENTRY_AUTH_TOKEN, solo en CI/Vercel)
   authToken: process.env.SENTRY_AUTH_TOKEN,
 
-  // Silencia el output de Sentry en build (menos ruido en CI)
+  // Silencia el output de Sentry fuera de CI
   silent: !process.env.CI,
 
-  // Oculta source maps del bundle del cliente (seguridad)
-  // Los source maps se suben a Sentry y se eliminan del build
-  hideSourceMaps: true,
-
-  // Deshabilita el logger de Sentry en producción
-  disableLogger: true,
+  // Sube los source maps y los borra del build público
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 
   // Tunnel para evitar ad blockers que bloqueen sentry.io
-  // Las peticiones van a /api/sentry-tunnel en lugar de sentry.io directamente
   tunnelRoute: '/api/sentry-tunnel',
-
-  // Instrumentación automática de rutas (recomendado para App Router)
-  automaticVercelMonitors: true,
 })

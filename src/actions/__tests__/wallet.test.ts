@@ -1,37 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { privateKeyToAccount } from 'viem/accounts'
 
 // ---------------------------------------------------------------------------
 // Mocks - declared before imports so hoisting works correctly
 // ---------------------------------------------------------------------------
 
-// Chainable query builder mock that mirrors Supabase's fluent API:
-//   supabase.from('table').select('...').eq('col', val).neq('col', val).maybeSingle()
-//   supabase.from('table').update({...}).eq('col', val)
-//   supabase.from('table').select('...').eq('col', val).single()
-
-const mockMaybeSingle = vi.fn()
-const mockSingle = vi.fn()
-const mockNeq = vi.fn(() => ({ maybeSingle: mockMaybeSingle }))
-const mockEq = vi.fn(() => ({
-  neq: mockNeq,
-  maybeSingle: mockMaybeSingle,
-  single: mockSingle,
-}))
-const mockSelect = vi.fn(() => ({ eq: mockEq }))
-const mockUpdate = vi.fn(() => ({ eq: mockEq }))
-
-const mockSupabase = {
-  auth: {
-    getUser: vi.fn(),
-  },
+// User client (RLS): auth + reading the caller's own profile
+const mockUserSingle = vi.fn()
+const mockUserSupabase = {
+  auth: { getUser: vi.fn() },
   from: vi.fn(() => ({
-    select: mockSelect,
-    update: mockUpdate,
+    select: vi.fn(() => ({ eq: vi.fn(() => ({ single: mockUserSingle })) })),
   })),
 }
 
 vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(() => Promise.resolve(mockSupabase)),
+  createClient: vi.fn(() => Promise.resolve(mockUserSupabase)),
+}))
+
+// Admin client (service role): duplicate check + privileged write
+const mockAdminMaybeSingle = vi.fn()
+const mockAdminUpdate = vi.fn()
+const mockAdminUpdateEq = vi.fn()
+const mockAdminSupabase = {
+  from: vi.fn(() => ({
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({ neq: vi.fn(() => ({ maybeSingle: mockAdminMaybeSingle })) })),
+    })),
+    update: (values: Record<string, unknown>) => {
+      mockAdminUpdate(values)
+      return { eq: mockAdminUpdateEq }
+    },
+  })),
+}
+const mockCreateAdminClient = vi.fn<() => typeof mockAdminSupabase | null>(() => mockAdminSupabase)
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => mockCreateAdminClient(),
 }))
 
 // ---------------------------------------------------------------------------
@@ -39,6 +44,7 @@ vi.mock('@/lib/supabase/server', () => ({
 // ---------------------------------------------------------------------------
 
 import {
+  getWalletProofMessage,
   linkWallet,
   unlinkWallet,
   saveSmartAccount,
@@ -46,11 +52,24 @@ import {
 } from '../wallet'
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants (well-known local test keys — never hold real funds)
 // ---------------------------------------------------------------------------
 
-const VALID_ADDRESS = '0x742d35cc6634c0532925a3b844bc9e7595f2bd18'
 const USER_ID = 'user-abc-123'
+const owner = privateKeyToAccount('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80')
+const attacker = privateKeyToAccount('0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d')
+const SMART_ACCOUNT = '0x742d35cc6634c0532925a3b844bc9e7595f2bd18'
+
+async function signedProof(
+  address: string,
+  purpose: 'link-wallet' | 'link-smart-account',
+  signer = owner,
+) {
+  const request = await getWalletProofMessage(address, purpose)
+  if ('error' in request) throw new Error(request.error)
+  const signature = await signer.signMessage({ message: request.message })
+  return { address, issuedAt: request.issuedAt, signature }
+}
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -59,123 +78,134 @@ const USER_ID = 'user-abc-123'
 describe('Wallet Server Actions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockUserSupabase.auth.getUser.mockResolvedValue({ data: { user: { id: USER_ID } } })
+    mockUserSingle.mockResolvedValue({ data: { wallet_address: owner.address.toLowerCase() }, error: null })
+    mockAdminMaybeSingle.mockResolvedValue({ data: null })
+    mockAdminUpdateEq.mockResolvedValue({ error: null })
+    mockCreateAdminClient.mockReturnValue(mockAdminSupabase)
+  })
 
-    // Default: authenticated user
-    mockSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { id: USER_ID } },
+  describe('getWalletProofMessage', () => {
+    it('should bind the message to the user and the address', async () => {
+      // Act
+      const result = await getWalletProofMessage(owner.address, 'link-wallet')
+
+      // Assert
+      expect('message' in result && result.message).toContain(USER_ID)
+      expect('message' in result && result.message).toContain(owner.address.toLowerCase())
     })
 
-    // Default: no existing record, no DB errors
-    mockMaybeSingle.mockResolvedValue({ data: null })
-    mockSingle.mockResolvedValue({ data: null, error: null })
-    mockEq.mockReturnValue({
-      neq: mockNeq,
-      maybeSingle: mockMaybeSingle,
-      single: mockSingle,
-    })
-    // For update().eq() chain - resolve without error by default
-    mockUpdate.mockReturnValue({
-      eq: vi.fn(() => Promise.resolve({ error: null })),
+    it('should reject an invalid address', async () => {
+      // Act
+      const result = await getWalletProofMessage('0x123', 'link-wallet')
+
+      // Assert
+      expect(result).toEqual({ error: 'Invalid Ethereum address' })
     })
   })
 
-  // =========================================================================
-  // linkWallet
-  // =========================================================================
   describe('linkWallet', () => {
-    it('should return error for invalid address without 0x prefix', async () => {
+    it('should link the wallet when the signature matches', async () => {
       // Arrange
-      const badAddress = '742d35cc6634c0532925a3b844bc9e7595f2bd18'
+      const proof = await signedProof(owner.address, 'link-wallet')
 
       // Act
-      const result = await linkWallet(badAddress)
+      const result = await linkWallet(proof)
 
       // Assert
-      expect(result).toEqual({ error: 'Invalid Ethereum address' })
-      expect(mockSupabase.auth.getUser).not.toHaveBeenCalled()
+      expect(result).toEqual({ success: true })
+      expect(mockAdminUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ wallet_address: owner.address.toLowerCase() }),
+      )
     })
 
-    it('should return error for short address', async () => {
-      // Arrange
-      const shortAddress = '0x742d35'
+    it('should reject a signature from another wallet', async () => {
+      // Arrange: attacker signs a proof claiming the owner's address
+      const proof = await signedProof(owner.address, 'link-wallet', attacker)
 
       // Act
-      const result = await linkWallet(shortAddress)
+      const result = await linkWallet(proof)
 
       // Assert
-      expect(result).toEqual({ error: 'Invalid Ethereum address' })
+      expect(result).toEqual({ error: 'Invalid or expired wallet signature' })
+      expect(mockAdminUpdate).not.toHaveBeenCalled()
+    })
+
+    it('should reject an expired proof', async () => {
+      // Arrange
+      const proof = await signedProof(owner.address, 'link-wallet')
+      const expired = { ...proof, issuedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString() }
+
+      // Act
+      const result = await linkWallet(expired)
+
+      // Assert
+      expect(result).toEqual({ error: 'Invalid or expired wallet signature' })
+    })
+
+    it('should reject a proof signed for another user', async () => {
+      // Arrange: proof created while logged in as someone else
+      mockUserSupabase.auth.getUser.mockResolvedValueOnce({ data: { user: { id: 'other-user' } } })
+      const proof = await signedProof(owner.address, 'link-wallet')
+
+      // Act
+      const result = await linkWallet(proof)
+
+      // Assert
+      expect(result).toEqual({ error: 'Invalid or expired wallet signature' })
     })
 
     it('should return error when not authenticated', async () => {
       // Arrange
-      mockSupabase.auth.getUser.mockResolvedValue({
-        data: { user: null },
-      })
+      const proof = await signedProof(owner.address, 'link-wallet')
+      mockUserSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
 
       // Act
-      const result = await linkWallet(VALID_ADDRESS)
+      const result = await linkWallet(proof)
 
       // Assert
       expect(result).toEqual({ error: 'Not authenticated' })
     })
 
-    it('should return error when wallet is already linked to another user', async () => {
+    it('should reject a wallet linked to another account', async () => {
       // Arrange
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'other-user-456' } })
+      const proof = await signedProof(owner.address, 'link-wallet')
+      mockAdminMaybeSingle.mockResolvedValue({ data: { id: 'another-user' } })
 
       // Act
-      const result = await linkWallet(VALID_ADDRESS)
+      const result = await linkWallet(proof)
 
       // Assert
-      expect(result).toEqual({
-        error: 'This wallet address is already linked to another account',
-      })
-      expect(mockSupabase.from).toHaveBeenCalledWith('profiles')
-      expect(mockSelect).toHaveBeenCalledWith('id')
+      expect(result).toEqual({ error: 'This address is already linked to another account' })
+      expect(mockAdminUpdate).not.toHaveBeenCalled()
     })
 
-    it('should successfully link valid address', async () => {
+    it('should fail clearly when the service role key is missing', async () => {
       // Arrange
-      mockMaybeSingle.mockResolvedValue({ data: null })
-      const updateEqFn = vi.fn(() => Promise.resolve({ error: null }))
-      mockUpdate.mockReturnValue({ eq: updateEqFn })
+      const proof = await signedProof(owner.address, 'link-wallet')
+      mockCreateAdminClient.mockReturnValue(null)
 
       // Act
-      const result = await linkWallet(VALID_ADDRESS)
+      const result = await linkWallet(proof)
 
       // Assert
-      expect(result).toEqual({ success: true })
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ wallet_address: VALID_ADDRESS }),
-      )
-      expect(updateEqFn).toHaveBeenCalledWith('id', USER_ID)
-    })
-
-    it('should return error when database update fails', async () => {
-      // Arrange
-      mockMaybeSingle.mockResolvedValue({ data: null })
-      const updateEqFn = vi.fn(() =>
-        Promise.resolve({ error: { message: 'DB write error' } }),
-      )
-      mockUpdate.mockReturnValue({ eq: updateEqFn })
-
-      // Act
-      const result = await linkWallet(VALID_ADDRESS)
-
-      // Assert
-      expect(result).toEqual({ error: 'DB write error' })
+      expect(result).toEqual({ error: expect.stringContaining('SUPABASE_SERVICE_ROLE_KEY') })
     })
   })
 
-  // =========================================================================
-  // unlinkWallet
-  // =========================================================================
   describe('unlinkWallet', () => {
+    it('should clear the wallet address', async () => {
+      // Act
+      const result = await unlinkWallet()
+
+      // Assert
+      expect(result).toEqual({ success: true })
+      expect(mockAdminUpdate).toHaveBeenCalledWith(expect.objectContaining({ wallet_address: null }))
+    })
+
     it('should return error when not authenticated', async () => {
       // Arrange
-      mockSupabase.auth.getUser.mockResolvedValue({
-        data: { user: null },
-      })
+      mockUserSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
 
       // Act
       const result = await unlinkWallet()
@@ -183,123 +213,53 @@ describe('Wallet Server Actions', () => {
       // Assert
       expect(result).toEqual({ error: 'Not authenticated' })
     })
-
-    it('should successfully unlink wallet', async () => {
-      // Arrange
-      const updateEqFn = vi.fn(() => Promise.resolve({ error: null }))
-      mockUpdate.mockReturnValue({ eq: updateEqFn })
-
-      // Act
-      const result = await unlinkWallet()
-
-      // Assert
-      expect(result).toEqual({ success: true })
-      expect(mockSupabase.from).toHaveBeenCalledWith('profiles')
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ wallet_address: null }),
-      )
-      expect(updateEqFn).toHaveBeenCalledWith('id', USER_ID)
-    })
-
-    it('should return error when database update fails', async () => {
-      // Arrange
-      const updateEqFn = vi.fn(() =>
-        Promise.resolve({ error: { message: 'Unlink failed' } }),
-      )
-      mockUpdate.mockReturnValue({ eq: updateEqFn })
-
-      // Act
-      const result = await unlinkWallet()
-
-      // Assert
-      expect(result).toEqual({ error: 'Unlink failed' })
-    })
   })
 
-  // =========================================================================
-  // saveSmartAccount
-  // =========================================================================
   describe('saveSmartAccount', () => {
-    it('should return error for invalid address', async () => {
+    it('should save when the linked owner wallet signs', async () => {
       // Arrange
-      const badAddress = 'not-an-address'
+      const proof = await signedProof(SMART_ACCOUNT, 'link-smart-account')
 
       // Act
-      const result = await saveSmartAccount(badAddress)
-
-      // Assert
-      expect(result).toEqual({ error: 'Invalid Ethereum address' })
-      expect(mockSupabase.auth.getUser).not.toHaveBeenCalled()
-    })
-
-    it('should return error when not authenticated', async () => {
-      // Arrange
-      mockSupabase.auth.getUser.mockResolvedValue({
-        data: { user: null },
-      })
-
-      // Act
-      const result = await saveSmartAccount(VALID_ADDRESS)
-
-      // Assert
-      expect(result).toEqual({ error: 'Not authenticated' })
-    })
-
-    it('should return error when smart account already linked to another user', async () => {
-      // Arrange
-      mockMaybeSingle.mockResolvedValue({ data: { id: 'other-user-789' } })
-
-      // Act
-      const result = await saveSmartAccount(VALID_ADDRESS)
-
-      // Assert
-      expect(result).toEqual({
-        error: 'This smart account address is already linked to another account',
-      })
-    })
-
-    it('should successfully save smart account', async () => {
-      // Arrange
-      mockMaybeSingle.mockResolvedValue({ data: null })
-      const updateEqFn = vi.fn(() => Promise.resolve({ error: null }))
-      mockUpdate.mockReturnValue({ eq: updateEqFn })
-
-      // Act
-      const result = await saveSmartAccount(VALID_ADDRESS)
+      const result = await saveSmartAccount(proof)
 
       // Assert
       expect(result).toEqual({ success: true })
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ smart_account_address: VALID_ADDRESS }),
+      expect(mockAdminUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({ smart_account_address: SMART_ACCOUNT }),
       )
-      expect(updateEqFn).toHaveBeenCalledWith('id', USER_ID)
+    })
+
+    it('should require a linked wallet first', async () => {
+      // Arrange
+      const proof = await signedProof(SMART_ACCOUNT, 'link-smart-account')
+      mockUserSingle.mockResolvedValue({ data: { wallet_address: null }, error: null })
+
+      // Act
+      const result = await saveSmartAccount(proof)
+
+      // Assert
+      expect(result).toEqual({ error: 'Link your wallet before saving a smart account' })
+    })
+
+    it('should reject a signature that is not from the linked wallet', async () => {
+      // Arrange
+      const proof = await signedProof(SMART_ACCOUNT, 'link-smart-account', attacker)
+
+      // Act
+      const result = await saveSmartAccount(proof)
+
+      // Assert
+      expect(result).toEqual({ error: 'Invalid or expired wallet signature' })
+      expect(mockAdminUpdate).not.toHaveBeenCalled()
     })
   })
 
-  // =========================================================================
-  // getWalletInfo
-  // =========================================================================
   describe('getWalletInfo', () => {
-    it('should return error when not authenticated', async () => {
+    it('should return the stored addresses', async () => {
       // Arrange
-      mockSupabase.auth.getUser.mockResolvedValue({
-        data: { user: null },
-      })
-
-      // Act
-      const result = await getWalletInfo()
-
-      // Assert
-      expect(result).toEqual({ error: 'Not authenticated' })
-    })
-
-    it('should return wallet info for authenticated user', async () => {
-      // Arrange
-      mockSingle.mockResolvedValue({
-        data: {
-          wallet_address: VALID_ADDRESS,
-          smart_account_address: '0x1234567890abcdef1234567890abcdef12345678',
-        },
+      mockUserSingle.mockResolvedValue({
+        data: { wallet_address: owner.address.toLowerCase(), smart_account_address: SMART_ACCOUNT },
         error: null,
       })
 
@@ -308,25 +268,20 @@ describe('Wallet Server Actions', () => {
 
       // Assert
       expect(result).toEqual({
-        walletAddress: VALID_ADDRESS,
-        smartAccountAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        walletAddress: owner.address.toLowerCase(),
+        smartAccountAddress: SMART_ACCOUNT,
       })
-      expect(mockSupabase.from).toHaveBeenCalledWith('profiles')
-      expect(mockSelect).toHaveBeenCalledWith('wallet_address, smart_account_address')
     })
 
-    it('should return error when database query fails', async () => {
+    it('should return error when not authenticated', async () => {
       // Arrange
-      mockSingle.mockResolvedValue({
-        data: null,
-        error: { message: 'Profile not found' },
-      })
+      mockUserSupabase.auth.getUser.mockResolvedValue({ data: { user: null } })
 
       // Act
       const result = await getWalletInfo()
 
       // Assert
-      expect(result).toEqual({ error: 'Profile not found' })
+      expect(result).toEqual({ error: 'Not authenticated' })
     })
   })
 })

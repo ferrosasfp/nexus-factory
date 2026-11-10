@@ -16,10 +16,38 @@ vi.mock('@/features/storage/services/storageProvider', () => ({
   })),
 }))
 
+vi.mock('next/headers', () => ({
+  headers: vi.fn(() => Promise.resolve(new Headers({ 'x-real-ip': '127.0.0.1' }))),
+}))
+
+// Chainable, awaitable query builder: from().select().eq().eq().maybeSingle(),
+// from().delete().eq().eq() (awaited), from().upsert() (awaited)
+const mockMaybeSingle = vi.fn()
+const mockUpsert = vi.fn()
+const mockDbDelete = vi.fn()
+const mockRpc = vi.fn()
+
+function createQueryBuilder() {
+  const builder = {
+    select: vi.fn(() => builder),
+    eq: vi.fn(() => builder),
+    delete: vi.fn(() => {
+      mockDbDelete()
+      return builder
+    }),
+    upsert: mockUpsert,
+    maybeSingle: mockMaybeSingle,
+    then: (resolve: (value: { error: null }) => unknown) => resolve({ error: null }),
+  }
+  return builder
+}
+
 const mockSupabase = {
   auth: {
     getUser: vi.fn(),
   },
+  from: vi.fn(() => createQueryBuilder()),
+  rpc: mockRpc,
 }
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -77,6 +105,9 @@ describe('Storage Server Actions', () => {
       url: 'https://gateway.pinata.cloud/ipfs/QmTest',
     })
     mockDelete.mockResolvedValue(undefined)
+    mockUpsert.mockResolvedValue({ error: null })
+    mockMaybeSingle.mockResolvedValue({ data: { cid: VALID_CID_V0 } })
+    mockRpc.mockResolvedValue({ data: false, error: null })
     mockRetrieve.mockResolvedValue('https://gateway.pinata.cloud/ipfs/QmTest')
   })
 
@@ -182,6 +213,10 @@ describe('Storage Server Actions', () => {
         url: 'https://gateway.pinata.cloud/ipfs/QmTest',
       })
       expect(mockUpload).toHaveBeenCalledWith(expect.any(File), undefined)
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: USER_ID, cid: VALID_CID_V0, mime_type: 'image/png' }),
+        { onConflict: 'user_id,cid' },
+      )
     })
 
     it('should upload successfully with valid file and metadata', async () => {
@@ -264,6 +299,32 @@ describe('Storage Server Actions', () => {
       // Assert
       expect(result).toEqual({ success: true })
       expect(mockDelete).toHaveBeenCalledWith(VALID_CID_V1)
+    })
+
+    it('should not delete a CID the user does not own', async () => {
+      // Arrange
+      mockMaybeSingle.mockResolvedValue({ data: null })
+
+      // Act
+      const result = await deleteFile(VALID_CID_V0)
+
+      // Assert
+      expect(result).toEqual({ error: 'File not found' })
+      expect(mockDelete).not.toHaveBeenCalled()
+      expect(mockDbDelete).not.toHaveBeenCalled()
+    })
+
+    it('should keep the pin when another user references the same CID', async () => {
+      // Arrange
+      mockRpc.mockResolvedValue({ data: true, error: null })
+
+      // Act
+      const result = await deleteFile(VALID_CID_V0)
+
+      // Assert
+      expect(result).toEqual({ success: true })
+      expect(mockDelete).not.toHaveBeenCalled()
+      expect(mockDbDelete).toHaveBeenCalled()
     })
 
     it('should return error when provider delete throws', async () => {

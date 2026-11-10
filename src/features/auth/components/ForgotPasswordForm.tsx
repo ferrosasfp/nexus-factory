@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { resetPassword } from '@/actions/auth'
 
 export function ForgotPasswordForm() {
@@ -9,11 +9,13 @@ export function ForgotPasswordForm() {
     const [success, setSuccess] = useState(false)
     const [loading, setLoading] = useState(false)
     const t = useTranslations('auth')
+    const locale = useLocale()
 
     async function handleSubmit(formData: FormData) {
         setLoading(true)
         setError(null)
 
+        formData.set('locale', locale)
         const result = await resetPassword(formData)
 
         if (result?.error) {

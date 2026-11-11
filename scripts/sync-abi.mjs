@@ -15,6 +15,19 @@ import { join, resolve } from 'path'
 const CONTRACTS_OUT = resolve(process.cwd(), 'contracts/out')
 const ABI_DIR = resolve(process.cwd(), 'src/features/contracts/abi')
 
+/** Source path of the artifact relative to contracts/ (e.g. "src/SampleToken.sol"). */
+function sourcePath(artifact) {
+  const fromAst = artifact.ast?.absolutePath
+  if (fromAst) return fromAst.replace(/\\/g, '/')
+  const target = Object.keys(artifact.metadata?.settings?.compilationTarget ?? {})[0]
+  return (target ?? '').replace(/\\/g, '/')
+}
+
+/** SampleToken -> sampleToken */
+function camelName(name) {
+  return name.charAt(0).toLowerCase() + name.slice(1)
+}
+
 function main() {
   if (!existsSync(CONTRACTS_OUT)) {
     console.error('  contracts/out/ not found. Run `forge build` first.')
@@ -42,12 +55,19 @@ function main() {
       const artifact = JSON.parse(readFileSync(fullPath, 'utf-8'))
 
       if (!artifact.abi) continue
+      // Only the project's own contracts (src/), not forge-std/OpenZeppelin/tests/scripts.
+      // Forge omits `ast` unless enabled, so fall back to the metadata compilation target.
+      if (!sourcePath(artifact).startsWith('src/')) continue
 
       const abiContent = JSON.stringify(artifact.abi, null, 2)
       const targetPath = join(ABI_DIR, `${contractName}.json`)
 
       writeFileSync(targetPath, abiContent)
-      console.log(`  ✓ ${contractName}.json`)
+      writeFileSync(
+        join(ABI_DIR, `${contractName}.ts`),
+        `// Generado por scripts/sync-abi.mjs. No editar.\nexport const ${camelName(contractName)}Abi = ${abiContent} as const\n`
+      )
+      console.log(`  ✓ ${contractName}.json + ${contractName}.ts`)
       synced++
     }
   }

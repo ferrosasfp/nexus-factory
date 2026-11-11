@@ -1,0 +1,496 @@
+// Generado por scripts/sync-abi.mjs. No editar.
+export const polizaParametricaAbi = [
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_oraculo",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "DESCUENTO_ROTACION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "cambiarOraculo",
+    "inputs": [
+      {
+        "name": "nuevo",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cobrado",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "comprarPoliza",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rotacionResiliente",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "conRotacion",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "crearZona",
+    "inputs": [
+      {
+        "name": "nombre",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "umbral",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "cobertura",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "primaBase",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "oraculo",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "prima",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rotacionResiliente",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "reclamar",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "reportarIndice",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "indice",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "hashDatos",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tienePoliza",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalZonas",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "zonas",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "nombre",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "umbral",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "cobertura",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "primaBase",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "reportada",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "disparada",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "indice",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "hashDatos",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "asegurados",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "IndiceReportado",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "indice",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "disparada",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      },
+      {
+        "name": "hashDatos",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PagoReclamado",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "productor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "monto",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PolizaComprada",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "productor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "prima",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "conRotacion",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ZonaCreada",
+    "inputs": [
+      {
+        "name": "zonaId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "nombre",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "umbral",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "cobertura",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "primaBase",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "FondosInsuficientes",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PrimaIncorrecta",
+    "inputs": [
+      {
+        "name": "esperada",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "SinPago",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SoloOraculo",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SoloOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "YaAsegurado",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "YaReportada",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ZonaInexistente",
+    "inputs": []
+  }
+] as const

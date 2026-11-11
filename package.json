@@ -20,7 +20,12 @@
     "contracts:slither": "cd contracts && slither src/ --filter-paths lib/",
     "contracts:sync-abi": "node scripts/sync-abi.mjs",
     "contracts:deploy:fuji": "cd contracts && forge script script/DeployToken.s.sol --rpc-url fuji --broadcast",
-    "qa:hybrid": "npm run qa && npm run contracts:build && npm run contracts:test"
+    "qa:hybrid": "npm run qa && npm run contracts:build && npm run contracts:test",
+    "field-shift:datos": "node scripts/field-shift-datos.mjs",
+    "field-shift:golden": "node scripts/field-shift-golden.mjs",
+    "contracts:install": "cd contracts && forge install --no-git foundry-rs/forge-std@v1.9.4 OpenZeppelin/openzeppelin-contracts@v5.1.0",
+    "contracts:deploy:poliza:fuji": "cd contracts && forge script script/DeployPoliza.s.sol --rpc-url fuji --broadcast",
+    "contracts:reportar:fuji": "cd contracts && forge script script/ReportarIndice.s.sol --rpc-url fuji --broadcast"
   },
   "dependencies": {
     "@sentry/nextjs": "^11.12.0",

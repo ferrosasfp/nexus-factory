@@ -27,6 +27,12 @@ export async function middleware(request: NextRequest) {
     return intlResponse
   }
 
+  // Rutas públicas sin Supabase (demo Field Shift: sin login ni cookies de sesión)
+  const publicLocale = extractLocaleFromPath(request.nextUrl.pathname) ?? routing.defaultLocale
+  if (stripLocale(request.nextUrl.pathname, publicLocale).startsWith('/field-shift')) {
+    return intlResponse
+  }
+
   // Step 2: Run Supabase auth check on the intl response
   const response = intlResponse
 

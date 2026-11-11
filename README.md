@@ -196,6 +196,85 @@ NexusAgil, process this HU: [your feature description]
 
 ---
 
+## Cómo levantar Field Shift localmente
+
+Field Shift es una demo pública (`/[locale]/field-shift`) para la sierra de Moquegua, Perú: toma 25 años de datos satelitales de NASA POWER, muestra el clima de la campaña (con escenarios El Niño y La Niña), recomienda una rotación de cultivos explicable y hace el backtest de un seguro paramétrico.
+Es la base del workshop y del hackathon del reto **Field Shift: Adapting Farms with NASA Data** del [NASA Space Apps Challenge 2026](https://www.spaceappschallenge.org).
+
+### Requisitos
+
+- Node.js 20 o más reciente.
+- [Foundry](https://book.getfoundry.sh) (opcional, solo para el contrato).
+
+### Levantarlo
+
+```bash
+npm ci
+npm run dev
+```
+
+Abre http://localhost:3000/es/field-shift (o `/en/field-shift`). No requiere Supabase ni login: la ruta es pública.
+
+### Sin wifi (workshop)
+
+Los datos ya vienen en el repo (`src/features/field-shift/data/*.json`). Si NASA POWER no responde en 8 s, la app usa esa copia y lo indica en pantalla ("copia guardada").
+
+```bash
+FIELD_SHIFT_OFFLINE=true npm run dev   # no intenta la red: usa los snapshots directo
+npm run field-shift:datos               # con internet: actualiza los snapshots
+```
+
+### Tests
+
+```bash
+npm run test                                              # Vitest (incluye el golden de paridad con el MVP)
+npm run test:e2e -- field-shift                           # Playwright
+npm run field-shift:golden -- <ruta-a-field-shift-mvp>    # regenera el golden desde el MVP original
+```
+
+### Contrato (opcional, Avalanche Fuji)
+
+> **Contrato educativo, no auditado; solo Fuji y wallets de prueba**
+
+```bash
+npm run contracts:install     # forge-std + OpenZeppelin en contracts/lib
+npm run contracts:test
+```
+
+1. Crea `contracts/.env` con `PRIVATE_KEY=0x...` **de una wallet de pruebas** (nunca una con fondos reales) y consigue AVAX de prueba en el [faucet de Fuji](https://core.app/tools/testnet-faucet/).
+2. Despliega: `npm run contracts:deploy:poliza:fuji`.
+3. Copia la dirección que imprime en `NEXT_PUBLIC_FIELD_SHIFT_CONTRACT` (`.env.local`) y reinicia `npm run dev`. Sin esa variable, el bloque de la póliza queda oculto.
+4. Conecta tu wallet (Core o MetaMask) en Fuji y compra una póliza.
+5. Simula al oráculo publicando el índice (humedad del suelo × 1000; 380 = 0.380):
+
+   ```bash
+   CONTRATO=0x... INDICE=380 npm run contracts:reportar:fuji
+   ```
+
+   Si el índice queda debajo del umbral (450), presiona **Reclamar pago**.
+
+### Limitaciones del MVP
+
+- Cada dato de NASA POWER cubre una celda de unos 50 km: en Moquegua una celda mezcla pisos ecológicos distintos y zonas cercanas pueden dar el mismo resultado.
+- Los valores agronómicos de los cultivos son aproximados: valídalos con un agrónomo local.
+- `T2M_MIN` es mensual: confirma en el diccionario de parámetros de NASA POWER si es la mínima absoluta del mes o el promedio de las mínimas diarias, porque cambia cómo se lee la tarjeta de heladas.
+- La lluvia de NASA POWER puede diferir de la de las estaciones de Senamhi; compararlas es una buena mejora.
+
+### Ideas para el hackathon
+
+- Agregar vegetación (NDVI de MODIS) para confirmar daño en el cultivo.
+- Usar humedad del suelo de SMAP con mejor resolución.
+- Datos de suelo reales (SoilGrids) en lugar de reglas generales.
+- Un mapa para marcar la parcela.
+- Validar cultivos y umbrales con un agrónomo, una agencia agraria o una junta de usuarios de riego.
+- Comparar con estaciones de Senamhi.
+- Agregar los valles con riego usando la lluvia de la cuenca alta como indicador del agua disponible.
+- Conectar el oráculo con Chainlink Functions.
+- Usar el pronóstico de ENFEN antes de sembrar para elegir el escenario automáticamente.
+- En el contrato: cerrar la venta de pólizas antes de que se conozca el pronóstico de El Niño (si no, la gente compra solo cuando ya sabe que viene seco) y guardar reservas para un año en que todos cobran a la vez.
+
+---
+
 ## NexusFactory vs NexusAgil
 
 | | NexusFactory | NexusAgil (standalone) |

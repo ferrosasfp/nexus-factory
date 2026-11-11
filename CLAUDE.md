@@ -387,6 +387,7 @@ npm run i18n:sync              # Detecta claves faltantes entre idiomas
 
 ### Smart Contracts (solo hybrid)
 ```bash
+npm run contracts:install      # forge-std + OpenZeppelin en contracts/lib (una vez, con internet)
 npm run contracts:build        # forge build
 npm run contracts:test         # forge test -vvv
 npm run contracts:slither      # Análisis de seguridad
@@ -489,6 +490,16 @@ test('should calculate total with tax', () => {
 - **Error**: El link iba a `${SITE_URL}/update-password` (sin locale y sin canjear el code), así que `updateUser` fallaba sin sesión
 - **Fix**: `redirectTo: /${locale}/callback?next=/${locale}/update-password`
 - **Aplicar en**: Todo flujo de email de Supabase (recovery, magic link, invite)
+
+### 2026-11-10: contracts/lib ignorado → forge test falla en checkout limpio
+- **Error**: `contracts/lib/` está en `.gitignore` y no hay submódulos, así que en un clon nuevo `forge test` fallaba con `forge-std/Test.sol not found`
+- **Fix**: `npm run contracts:install` (`forge install --no-git` con versiones fijas) antes de `contracts:build/test`
+- **Aplicar en**: CI (`qa:hybrid`) y onboarding: instalar libs de Foundry antes de compilar
+
+### 2026-11-10: Artefactos de Forge no traen `ast` por defecto
+- **Error**: Filtrar ABIs por `artifact.ast.absolutePath` no sincronizaba nada
+- **Fix**: Usar `metadata.settings.compilationTarget` para saber el archivo fuente (`scripts/sync-abi.mjs`)
+- **Aplicar en**: Cualquier script que lea `contracts/out`
 
 ---
 

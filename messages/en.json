@@ -148,5 +148,150 @@
     "contractError": "Smart contract error",
     "walletAlreadyLinked": "This wallet is already linked to another account",
     "smartAccountNotConfigured": "Account Abstraction is not configured"
+  },
+  "fieldShift": {
+    "title": "Field Shift: adapt your farm with NASA data",
+    "eyebrow": "NASA Space Apps 2026 · Field Shift challenge",
+    "subtitle": "25 years of NASA satellite data over the Moquegua highlands, turned into a crop rotation recommendation you can explain.",
+    "metaDescription": "Growing-season climate from NASA POWER, El Niño and La Niña scenarios, recommended crop rotation and a parametric insurance backtest for the Moquegua highlands.",
+    "avisoDatos": "Agronomic values are approximate: validate them with a local agronomist before using them with farmers. Each NASA POWER data point covers a cell of about 50 km.",
+    "pie": "Data: NASA POWER (rainfall, temperature, minimum temperature and soil moisture, monthly, cells of about 50 km). Sample project for the workshop; not an official NASA product.",
+    "zona": {
+      "titulo": "Choose the area",
+      "label": "Area",
+      "nota": "Highland areas only: in the irrigated valleys (Moquegua, Torata, Omate, Ilo) water comes from the rain that falls up here and is stored in reservoirs such as Pasto Grande."
+    },
+    "zonas": {
+      "carumas": "Carumas, Mariscal Nieto",
+      "ichuna": "Ichuña, General Sánchez Cerro",
+      "ubinas": "Ubinas, General Sánchez Cerro",
+      "yunga": "Yunga, General Sánchez Cerro"
+    },
+    "consultar": "Query NASA",
+    "cargando": "Querying NASA POWER… (this may take a few seconds)",
+    "listo": "Ready: {zona} · {origen}",
+    "origen": {
+      "nasa": "NASA POWER (live)",
+      "offline": "NASA POWER (saved copy)"
+    },
+    "errorDatos": "Could not get the data. Check your connection and try again.",
+    "errores": {
+      "CAMPANIAS_INSUFICIENTES": "There are not enough complete seasons to analyze",
+      "ESCENARIO_INSUFICIENTE": "There are too few seasons of that scenario in the data"
+    },
+    "clima": {
+      "titulo": "What the satellites say"
+    },
+    "escenario": {
+      "label": "Scenario",
+      "todas": "Average of all seasons",
+      "nino": "Only El Niño years (like 2026-27)",
+      "nina": "Only La Niña years",
+      "periodo": {
+        "todas": "all seasons",
+        "nino": "only El Niño seasons",
+        "nina": "only La Niña seasons"
+      },
+      "resumen": "{zona} · {cuales} ({n} of {total}, between {desde} and {hasta})"
+    },
+    "unidades": {
+      "mm": "{v} mm",
+      "celsius": "{v} °C",
+      "pct": "{v}%"
+    },
+    "tarjetas": {
+      "lluvia": "Average season rainfall (Oct–Apr), {cuales}",
+      "nino": "Rainfall in El Niño years compared with the average of all seasons",
+      "secas": "Dry seasons (less than 75% of normal), {cuales}",
+      "secasLista": "Dry seasons (less than 75% of normal), {cuales}: {lista}",
+      "tmin": "Typical minimum temperature of the season",
+      "helada": "Season months with a minimum below 0 °C (frost risk)",
+      "tendencia": "Change in rainfall: second half of the period vs. first half"
+    },
+    "prioridades": {
+      "titulo": "What matters most to the farmer?",
+      "comida": "Food for the family",
+      "ingreso": "Income",
+      "suelo": "Care for the soil",
+      "clima": "Withstand drought and frost"
+    },
+    "rotacion": {
+      "titulo": "Recommended rotations for two seasons",
+      "item": "{n}. Year 1: {a} → Year 2: {b}",
+      "puntaje": "Score {n}/100"
+    },
+    "backtest": {
+      "titulo": "If an insurance policy had existed, when would it have paid?",
+      "explicacion": "Index: average soil moisture from December to February, the heart of the rainy season. If it falls below the threshold, the policy pays.",
+      "umbral": "Threshold",
+      "grafico": "Soil moisture index per year and payout threshold",
+      "leyendaUmbral": "- - - payout threshold",
+      "marcaNino": "N",
+      "leyendaNino": "= El Niño season",
+      "barra": "Season {etiqueta}: index {indice}",
+      "barraNino": "Season {etiqueta} (El Niño): index {indice}",
+      "barraNina": "Season {etiqueta} (La Niña): index {indice}",
+      "paga": "{texto} → pays",
+      "resumen": "The policy would have paid in {pagos} of {total} seasons: {lista}. {nino} of those payouts fell in El Niño years.",
+      "ninguno": "With this threshold, the policy would not have paid in any season."
+    },
+    "poliza": {
+      "titulo": "Optional layer: policy on Avalanche Fuji",
+      "opcional": "Connect a test wallet (Core or MetaMask) on Fuji",
+      "descripcion": "The same index is published to a contract. If it crosses the threshold, each insured farmer claims their payout with no loss adjuster. Whoever adopts a resilient rotation pays a 20% lower premium.",
+      "avisoNoAuditado": "Educational, unaudited contract. Use it only on Fuji with a test wallet, never with real funds.",
+      "redIncorrecta": "Your wallet is on another network. Switch to Avalanche Fuji (testnet) to use the policy.",
+      "cambiarRed": "Switch to Fuji",
+      "cargando": "Reading the contract…",
+      "zona": "Area \"{nombre}\": threshold {umbral}",
+      "prima": "Premium: {monto} AVAX",
+      "primaRotacion": "Premium with rotation: {monto} AVAX",
+      "cobertura": "Coverage: {monto} AVAX",
+      "sinIndice": "Index not reported yet",
+      "indiceReportado": "Reported index {indice}: {resultado}",
+      "resultadoPaga": "PAYS",
+      "resultadoNoPaga": "does not pay",
+      "tienePoliza": "You already have a policy in this area.",
+      "adopto": "I adopt the recommended rotation",
+      "comprar": "Buy policy",
+      "reclamar": "Claim payout",
+      "resumenCompra": "You are about to pay {monto} AVAX on Avalanche Fuji (testnet) for the policy of area {zona}.",
+      "resumenReclamo": "You are about to claim the {monto} AVAX coverage of area {zona} on Avalanche Fuji (testnet).",
+      "confirmar": "Confirm",
+      "cancelar": "Cancel",
+      "confirmaWallet": "Confirm the transaction in your wallet…",
+      "exito": "Transaction confirmed.",
+      "verTx": "View transaction on Snowtrace (testnet)"
+    },
+    "cultivos": {
+      "papa": "Potato",
+      "haba": "Fava bean",
+      "cebada": "Barley",
+      "avena": "Forage oats",
+      "quinua": "Quinoa",
+      "maiz": "Starchy maize"
+    },
+    "conjuncion": " and ",
+    "razones": {
+      "cuando": {
+        "todas": "on average",
+        "nino": "in El Niño years",
+        "nina": "in La Niña years"
+      },
+      "de": {
+        "todas": "of the years",
+        "nino": "of the El Niño years",
+        "nina": "of the La Niña years"
+      },
+      "aguaCubre": "{cultivo}: season rainfall ({mm} mm {cuando}) covers what it needs.",
+      "aguaParcial": "{cultivo}: season rainfall ({mm} mm {cuando}) covers only {pct}% of what it needs.",
+      "sequiaTolerantes": "There was a dry season in {pct}% {de}; {cultivos} withstands it well.",
+      "sequiaNinguno": "Watch out: there was a dry season in {pct}% {de} and none of these crops tolerates it well.",
+      "heladaSensibles": "Watch out for frost ({pct}% of season months below 0 °C): {cultivos} is sensitive to cold.",
+      "heladaResistentes": "There is frost in {pct}% of season months; {cultivos} handles it well.",
+      "leguminosa": "Includes fava bean, a legume that returns nitrogen to the soil.",
+      "papaPrimero": "Follows the logic of Andean rotation: potato first, when the soil is most rested.",
+      "repite": "Repeats the same crop: the soil gets tired and pests build up."
+    }
   }
 }

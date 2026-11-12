@@ -16,6 +16,12 @@ on:
   pull_request:
     branches: [main]
 
+# GITHUB_TOKEN necesita escribir comentarios en el PR (pasos "Comment PR").
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
 jobs:
   qa:
     name: Typecheck · Lint · Test · Build

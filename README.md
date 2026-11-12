@@ -115,7 +115,7 @@ One perfected stack. No technical decisions needed.
 | Storage | Agnostic (Pinata/IPFS default) |
 | Security | Slither + Zod validation on on-chain inputs |
 
-Adding an EVM chain = 1 line in `src/shared/lib/web3/chains.ts`.
+Adding an EVM chain = import it from `viem/chains` and add it to `supportedChains` in `src/shared/lib/web3/chains.ts` (plus an optional custom RPC in `RPC_URLS`).
 
 ---
 

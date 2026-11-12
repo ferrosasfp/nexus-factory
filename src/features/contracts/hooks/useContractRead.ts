@@ -13,45 +13,69 @@ interface UseContractReadParams {
   chainId?: number
 }
 
+interface ReadResult {
+  data: unknown
+  error: string | null
+}
+
+function toMessage(err: unknown): string {
+  return err instanceof Error ? err.message : 'Contract read failed'
+}
+
 export function useContractRead({ address, abi, functionName, args = [], enabled = true, chainId }: UseContractReadParams) {
-  const [data, setData] = useState<unknown>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<ReadResult>({ data: null, error: null })
+  const [isLoading, setIsLoading] = useState(enabled)
 
   // Stabilize array/object references to prevent infinite re-renders
-  const argsKey = JSON.stringify(args)
+  const argsKey = JSON.stringify(args, (_k, v: unknown) => (typeof v === 'bigint' ? v.toString() : v))
   const stableArgs = useMemo(() => args, [argsKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const abiRef = useRef(abi)
-  abiRef.current = abi
+  useEffect(() => {
+    abiRef.current = abi
+  }, [abi])
 
-  const refetch = useCallback(async () => {
-    if (!enabled) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const client = getPublicClient(chainId)
-      const result = await client.readContract({
+  const read = useCallback(
+    () =>
+      getPublicClient(chainId).readContract({
         address,
         abi: abiRef.current,
         functionName,
         args: stableArgs as unknown[],
-      })
-      setData(result)
+      }),
+    [address, functionName, stableArgs, chainId],
+  )
+
+  // Manual refetch (event handlers)
+  const refetch = useCallback(async (): Promise<void> => {
+    if (!enabled) return
+    setIsLoading(true)
+    try {
+      setResult({ data: await read(), error: null })
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Contract read failed'
-      setError(message)
+      setResult((prev) => ({ data: prev.data, error: toMessage(err) }))
     } finally {
       setIsLoading(false)
     }
-  }, [address, functionName, stableArgs, enabled, chainId])
+  }, [enabled, read])
 
+  // Automatic read: state is only set from async callbacks, and stale responses are ignored
   useEffect(() => {
-    if (enabled) {
-      refetch()
+    if (!enabled) return
+    let cancelled = false
+    read()
+      .then((data) => {
+        if (!cancelled) setResult({ data, error: null })
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setResult((prev) => ({ data: prev.data, error: toMessage(err) }))
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-  }, [enabled, refetch])
+  }, [enabled, read])
 
-  return { data, isLoading, error, refetch }
+  return { data: result.data, isLoading, error: result.error, refetch }
 }

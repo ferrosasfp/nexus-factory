@@ -7,7 +7,7 @@
  *
  * Requiere: npm install @upstash/ratelimit @upstash/redis
  *
- * USAGE en cualquier route handler:
+ * USAGE en un route handler (Server Actions: rateLimitServerAction):
  * ─────────────────────────────────
  * import { rateLimitApi } from '@/lib/rate-limit'
  *
@@ -98,18 +98,37 @@ function getExpensiveLimiter() {
 
 // ─── Extracción de identificador ─────────────────────────────────────────────
 
-/**
- * Extrae el identificador del request para el rate limit.
- * Prioridad: IP real del header → IP de x-forwarded-for → 'anonymous'
- */
-function getIdentifier(request: Request): string {
-  const headers = request instanceof Request ? request.headers : (request as unknown as { headers: Headers }).headers
+type RateLimitPreset = 'api' | 'auth' | 'expensive'
 
+const LIMITERS: Record<RateLimitPreset, () => Ratelimit | null> = {
+  api: getApiLimiter,
+  auth: getAuthLimiter,
+  expensive: getExpensiveLimiter,
+}
+
+/**
+ * Extrae el identificador para el rate limit.
+ * Prioridad: x-real-ip (lo fija la plataforma, ej. Vercel) → x-forwarded-for → 'anonymous'
+ */
+function getIdentifierFromHeaders(headers: Headers): string {
   return (
     headers.get('x-real-ip') ??
     headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     'anonymous'
   )
+}
+
+async function limitByKey(preset: RateLimitPreset, key: string): Promise<RateLimitResult> {
+  const limiter = LIMITERS[preset]()
+  if (!limiter) return FALLBACK_RESULT
+
+  const result = await limiter.limit(key)
+  return {
+    success: result.success,
+    remaining: result.remaining,
+    reset: result.reset,
+    limit: result.limit,
+  }
 }
 
 // ─── Funciones públicas ───────────────────────────────────────────────────────
@@ -119,58 +138,39 @@ function getIdentifier(request: Request): string {
  * Usar en: endpoints públicos de lectura, búsquedas, listings.
  */
 export async function rateLimitApi(request: Request): Promise<RateLimitResult> {
-  const limiter = getApiLimiter()
-  if (!limiter) return FALLBACK_RESULT
-
-  const id = getIdentifier(request)
-  const result = await limiter.limit(id)
-
-  return {
-    success: result.success,
-    remaining: result.remaining,
-    reset: result.reset,
-    limit: result.limit,
-  }
+  return limitByKey('api', getIdentifierFromHeaders(request.headers))
 }
 
 /**
  * PRESET: Auth — 10 req/min por IP.
- * Usar en: /api/auth/login, /api/auth/signup, /api/auth/forgot-password.
  * Ventana más estricta para prevenir brute force.
  */
 export async function rateLimitAuth(request: Request): Promise<RateLimitResult> {
-  const limiter = getAuthLimiter()
-  if (!limiter) return FALLBACK_RESULT
-
-  const id = getIdentifier(request)
-  const result = await limiter.limit(id)
-
-  return {
-    success: result.success,
-    remaining: result.remaining,
-    reset: result.reset,
-    limit: result.limit,
-  }
+  return limitByKey('auth', getIdentifierFromHeaders(request.headers))
 }
 
 /**
  * PRESET: Operaciones costosas — 20 req/hora por IP.
  * Usar en: llamadas a IA, operaciones blockchain, procesamiento pesado.
- * Ventana de 1 hora para proteger costos.
  */
 export async function rateLimitExpensive(request: Request): Promise<RateLimitResult> {
-  const limiter = getExpensiveLimiter()
-  if (!limiter) return FALLBACK_RESULT
+  return limitByKey('expensive', getIdentifierFromHeaders(request.headers))
+}
 
-  const id = getIdentifier(request)
-  const result = await limiter.limit(id)
-
-  return {
-    success: result.success,
-    remaining: result.remaining,
-    reset: result.reset,
-    limit: result.limit,
-  }
+/**
+ * Rate limit para Server Actions (no reciben Request).
+ * `scope` separa contadores por acción: 'login', 'signup', 'upload'...
+ *
+ * Uso:
+ *   const rl = await rateLimitServerAction('auth', 'login')
+ *   if (!rl.success) return { error: 'Too many requests' }
+ */
+export async function rateLimitServerAction(
+  preset: RateLimitPreset,
+  scope: string,
+  headerList: Headers,
+): Promise<RateLimitResult> {
+  return limitByKey(preset, `${scope}:${getIdentifierFromHeaders(headerList)}`)
 }
 
 /**

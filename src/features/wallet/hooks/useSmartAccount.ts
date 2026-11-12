@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useWalletClient } from 'wagmi'
 import { isAAConfigured, getSmartAccountAddress } from '@/shared/lib/web3/aa'
-import { saveSmartAccount } from '@/actions/wallet'
+import { getWalletProofMessage, saveSmartAccount } from '@/actions/wallet'
 import type { Address } from 'viem'
 
 /**
@@ -39,9 +39,18 @@ export function useSmartAccount() {
       const address = await getSmartAccountAddress(walletClient)
       setSmartAccountAddress(address)
 
-      // Persist the derived address to the user's profile in Supabase
-      const result = await saveSmartAccount(address)
-      if (result.error) {
+      // Persist the derived address: the owner wallet signs a proof bound to this account
+      const proofRequest = await getWalletProofMessage(address, 'link-smart-account')
+      if ('error' in proofRequest) {
+        setError(`Smart account derived but failed to save: ${proofRequest.error}`)
+        return address
+      }
+      const signature = await walletClient.signMessage({
+        account: walletClient.account,
+        message: proofRequest.message,
+      })
+      const result = await saveSmartAccount({ address, issuedAt: proofRequest.issuedAt, signature })
+      if ('error' in result) {
         // Address was derived successfully but persistence failed.
         // We still show the address and surface the save error.
         setError(`Smart account derived but failed to save: ${result.error}`)

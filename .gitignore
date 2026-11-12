@@ -3,7 +3,6 @@
 /.pnp
 .pnp.js
 yarn.lock
-package-lock.json
 pnpm-lock.yaml
 
 # Testing
@@ -71,3 +70,6 @@ contracts/lib/
 
 # CLI Project
 /create-nexus/node_modules
+
+# TypeScript incremental build cache
+*.tsbuildinfo

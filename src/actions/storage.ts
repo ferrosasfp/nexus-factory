@@ -1,6 +1,8 @@
 'use server'
 
 import { z } from 'zod'
+import { headers } from 'next/headers'
+import { rateLimitServerAction } from '@/lib/rate-limit'
 import { createClient } from '@/lib/supabase/server'
 import { createStorageProvider } from '@/features/storage/services/storageProvider'
 
@@ -39,6 +41,11 @@ export async function uploadFile(formData: FormData) {
     return { error: 'Not authenticated' }
   }
 
+  const { success: allowed } = await rateLimitServerAction('expensive', `upload:${user.id}`, await headers())
+  if (!allowed) {
+    return { error: 'Upload limit reached. Please try again later.' }
+  }
+
   const file = formData.get('file') as File | null
   if (!file) {
     return { error: 'No file provided' }
@@ -75,6 +82,22 @@ export async function uploadFile(formData: FormData) {
   try {
     const provider = createStorageProvider()
     const result = await provider.upload(file, metadata)
+
+    // Record ownership so only this user can delete the pin later
+    const { error: dbError } = await supabase.from('user_files').upsert(
+      {
+        user_id: user.id,
+        cid: result.cid,
+        file_name: file.name,
+        mime_type: file.type,
+        size_bytes: file.size,
+      },
+      { onConflict: 'user_id,cid' },
+    )
+    if (dbError) {
+      return { error: `File pinned but ownership not recorded: ${dbError.message}` }
+    }
+
     return { cid: result.cid, url: result.url }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Upload failed'
@@ -82,8 +105,11 @@ export async function uploadFile(formData: FormData) {
   }
 }
 
-// TODO: Add a `user_files` table + RLS to track CID ownership per user.
-// Currently any authenticated user can delete any pinned CID.
+/**
+ * Deletes a file the current user uploaded. Ownership comes from `user_files` (RLS):
+ * users can only see and delete their own rows. The pin is removed from the storage
+ * provider only when no other user references the same CID.
+ */
 export async function deleteFile(cid: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -99,9 +125,33 @@ export async function deleteFile(cid: string) {
     return { error: cidValidation.error.issues[0].message }
   }
 
+  const cidValue = cidValidation.data
+  const { data: owned } = await supabase
+    .from('user_files')
+    .select('cid')
+    .eq('user_id', user.id)
+    .eq('cid', cidValue)
+    .maybeSingle()
+
+  if (!owned) {
+    return { error: 'File not found' }
+  }
+
   try {
-    const provider = createStorageProvider()
-    await provider.delete(cidValidation.data)
+    const { data: sharedCid } = await supabase.rpc('cid_has_other_owners', { p_cid: cidValue })
+    if (sharedCid !== true) {
+      await createStorageProvider().delete(cidValue)
+    }
+
+    const { error: dbError } = await supabase
+      .from('user_files')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('cid', cidValue)
+    if (dbError) {
+      return { error: dbError.message }
+    }
+
     return { success: true }
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Delete failed'

@@ -11,7 +11,9 @@ export async function GET(
 
   // Validate `next` to prevent open redirect attacks
   const nextRaw = searchParams.get('next') ?? `/${locale}/dashboard`
-  const next = nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : `/${locale}/dashboard`
+  // Only same-site paths: reject "//host" and "/\host" (browsers treat a backslash as "/")
+  const isSafePath = nextRaw.startsWith('/') && !nextRaw.startsWith('//') && !nextRaw.includes('\\')
+  const next = isSafePath ? nextRaw : `/${locale}/dashboard`
 
   if (code) {
     const supabase = await createClient()

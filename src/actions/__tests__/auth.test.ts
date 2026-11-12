@@ -269,6 +269,21 @@ describe('Auth Server Actions', () => {
   // resetPassword
   // =========================================================================
   describe('resetPassword', () => {
+    it('should send the recovery link through the locale callback', async () => {
+      // Arrange
+      mockSupabase.auth.resetPasswordForEmail.mockResolvedValue({ error: null })
+      const formData = new FormData()
+      formData.set('email', 'user@example.com')
+      formData.set('locale', 'es')
+
+      // Act
+      await resetPassword(formData)
+
+      // Assert
+      const [, options] = mockSupabase.auth.resetPasswordForEmail.mock.calls[0] as [string, { redirectTo: string }]
+      expect(options.redirectTo).toMatch(/\/es\/callback\?next=%2Fes%2Fupdate-password$/)
+    })
+
     it('should return error for invalid email', async () => {
       // Arrange
       const formData = createFormData({ email: 'not-valid' })

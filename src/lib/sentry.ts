@@ -14,7 +14,7 @@ const SENTRY_DSN = process.env.NEXT_PUBLIC_SENTRY_DSN
 
 /**
  * Inicializa Sentry con configuración de producción.
- * Llamar desde sentry.client.config.ts, sentry.server.config.ts y sentry.edge.config.ts.
+ * Llamar desde instrumentation-client.ts, sentry.server.config.ts y sentry.edge.config.ts.
  */
 export function initSentry(options?: Partial<Parameters<typeof Sentry.init>[0]>) {
   if (!SENTRY_DSN) {

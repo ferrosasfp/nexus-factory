@@ -41,11 +41,21 @@ export function useTx(hash: Hash | null) {
     }
   }, [hash])
 
+  // Automatic status check: state is only set from async callbacks, stale responses ignored
   useEffect(() => {
-    if (hash) {
-      checkStatus()
+    if (!hash) return
+    let cancelled = false
+    getTxStatus(hash)
+      .then((result) => {
+        if (!cancelled) setStatus(result)
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to check status')
+      })
+    return () => {
+      cancelled = true
     }
-  }, [hash, checkStatus])
+  }, [hash])
 
   return { status, isWaiting, error, checkStatus, waitForConfirmation }
 }

@@ -12,6 +12,7 @@ interface ContractWriterProps {
 
 export function ContractWriter({ address: defaultAddress, abi: defaultAbi }: ContractWriterProps) {
   const t = useTranslations('contracts')
+  const tValidation = useTranslations('validation')
   const [address, setAddress] = useState(defaultAddress ?? '' as Address)
   const [functionName, setFunctionName] = useState('')
   const [argsInput, setArgsInput] = useState('')
@@ -36,7 +37,7 @@ export function ContractWriter({ address: defaultAddress, abi: defaultAbi }: Con
         }
         args = parsed
       } catch {
-        setParseError('Invalid JSON format')
+        setParseError(tValidation('invalidJson'))
         return
       }
     }

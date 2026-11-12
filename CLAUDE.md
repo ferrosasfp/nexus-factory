@@ -103,7 +103,7 @@ No das opciones técnicas. Ejecutas el stack perfeccionado:
 | Capa | Tecnología | Por Qué |
 |------|------------|---------|
 | Blockchain | Viem + Wagmi 2 | TypeScript-first, EVM agnóstico |
-| Chain default | Avalanche (C-Chain + Fuji) | Extensible: agregar chain = 1 línea |
+| Chain default | Avalanche (C-Chain + Fuji) | Extensible: agregar chain = 1 entrada en `supportedChains` (+ RPC opcional) |
 | Wallet UI | Custom minimal (MetaMask/Core) | Máximo control, mínimo peso |
 | Account Abstraction | permissionless (Pimlico) | ERC-4337, Smart Account automática |
 | Smart Contracts | Foundry + OpenZeppelin | Rápido, seguro, estándares auditados |
@@ -469,6 +469,26 @@ test('should calculate total with tax', () => {
   npx supabase db push --include-all
   ```
 - **Aplicar en**: Reutilizar proyecto Supabase entre modos (hybrid/web2) + README
+
+### 2026-11-10: Sentry v8 rompe la instalación con Next 16
+- **Error**: `npm install` fallaba con ERESOLVE (`@sentry/nextjs@8` no acepta Next 16) y sin `package-lock.json` el `npm ci` de CI no podía correr
+- **Fix**: `@sentry/nextjs@^11` + `instrumentation.ts` / `instrumentation-client.ts` + `withSentryConfig` desde `@sentry/nextjs/config`; lockfile versionado; nunca `--legacy-peer-deps`
+- **Aplicar en**: Cualquier upgrade de Next.js: revisar `peerDependencies` de cada integración antes de subir de major
+
+### 2026-11-10: RLS por fila no protege columnas
+- **Error**: La policy `auth.uid() = id` dejaba que cualquier usuario escribiera `wallet_address` directo con la anon key, saltándose la validación del Server Action
+- **Fix**: `revoke update` + `grant update (full_name, avatar_url, updated_at)`; columnas sensibles solo vía service role tras verificar firma (`verifyMessage` con mensaje ligado a user id + timestamp)
+- **Aplicar en**: Toda tabla con columnas que el usuario no debe editar (roles, saldos, direcciones, flags)
+
+### 2026-11-10: Ownership de recursos externos (IPFS) en tabla propia
+- **Error**: `deleteFile` permitía a cualquier usuario autenticado despinear cualquier CID
+- **Fix**: Tabla `user_files` con RLS; borrar solo filas propias y despinear solo si nadie más referencia el CID
+- **Aplicar en**: Pinata, S3, Stripe, cualquier recurso cuyo id no vive en Supabase
+
+### 2026-11-10: Reset de contraseña debe pasar por /callback
+- **Error**: El link iba a `${SITE_URL}/update-password` (sin locale y sin canjear el code), así que `updateUser` fallaba sin sesión
+- **Fix**: `redirectTo: /${locale}/callback?next=/${locale}/update-password`
+- **Aplicar en**: Todo flujo de email de Supabase (recovery, magic link, invite)
 
 ---
 

@@ -1,5 +1,5 @@
 import { createPublicClient, http, type PublicClient } from 'viem'
-import { defaultChain, getChainById } from './chains'
+import { defaultChain, getChainById, getRpcUrl } from './chains'
 
 const clientCache = new Map<number, PublicClient>()
 
@@ -13,11 +13,7 @@ export function getPublicClient(chainId?: number): PublicClient {
   const cached = clientCache.get(chain.id)
   if (cached) return cached
 
-  const rpcUrl = chain.testnet
-    ? (process.env.NEXT_PUBLIC_RPC_TESTNET || undefined)
-    : (process.env.NEXT_PUBLIC_RPC_MAINNET || undefined)
-
-  const client = createPublicClient({ chain, transport: http(rpcUrl) })
+  const client = createPublicClient({ chain, transport: http(getRpcUrl(chain.id)) })
   clientCache.set(chain.id, client)
   return client
 }

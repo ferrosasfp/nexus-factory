@@ -294,7 +294,7 @@ export async function scaffold(config) {
   console.log('  Instalando dependencias (npm install)...')
   let npmFailed = false
   try {
-    execSync('npm install --legacy-peer-deps', { cwd: targetDir, stdio: 'pipe' })
+    execSync('npm install', { cwd: targetDir, stdio: 'pipe' })
     console.log('  Dependencias instaladas')
   } catch (err) {
     npmFailed = true
@@ -304,7 +304,7 @@ export async function scaffold(config) {
       const tail = stderr.split('\n').slice(-5).join('\n')
       console.log('  ' + tail.replace(/\n/g, '\n  '))
     }
-    console.log('  Ejecuta manualmente: cd ' + config.projectName + ' && npm install --legacy-peer-deps')
+    console.log('  Ejecuta manualmente: cd ' + config.projectName + ' && npm install')
   }
 
   // Step 7: Success message
@@ -314,7 +314,7 @@ export async function scaffold(config) {
   console.log('  Proximos pasos:')
   console.log(`    cd ${config.projectName}`)
   if (npmFailed) {
-    console.log('    npm install --legacy-peer-deps')
+    console.log('    npm install')
   }
   console.log('    npm run dev')
   console.log('')
@@ -354,6 +354,9 @@ function generateEnv(targetDir, config) {
 
   if (config.mode === 'hybrid') {
     lines.push(
+      '',
+      '# Server-only: writes wallet addresses after signature verification. Never expose.',
+      'SUPABASE_SERVICE_ROLE_KEY=',
       '',
       '# Web3 (EVM)',
       `NEXT_PUBLIC_DEFAULT_NETWORK=${config.chain}`,

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { locales } from '@/i18n/routing'
+import { rateLimitServerAction } from '@/lib/rate-limit'
 import { z } from 'zod'
 
 const localeSchema = z.enum(locales).default('en')
@@ -23,7 +24,23 @@ const signupSchema = z.object({
 
 const resetPasswordSchema = z.object({
     email: z.string().email('Invalid email address'),
+    locale: localeSchema,
 })
+
+const TOO_MANY_REQUESTS = 'Too many attempts. Please wait a minute and try again.'
+
+/** Brute-force guard for unauthenticated auth actions (10 req/min per IP and action). */
+async function isRateLimited(scope: string): Promise<boolean> {
+    const { success } = await rateLimitServerAction('auth', scope, await headers())
+    return !success
+}
+
+/** Public base URL used in emails/OAuth redirects. Prefer the configured site URL over request headers. */
+async function getSiteUrl(): Promise<string> {
+    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+    const headersList = await headers()
+    return headersList.get('origin') ?? 'http://localhost:3000'
+}
 
 const updatePasswordSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -46,6 +63,9 @@ export async function login(formData: FormData) {
     }
 
     const { email, password, locale } = validatedFields.data
+    if (await isRateLimited('login')) {
+        return { error: TOO_MANY_REQUESTS }
+    }
     const supabase = await createClient()
 
     const { error } = await supabase.auth.signInWithPassword({
@@ -73,6 +93,9 @@ export async function signup(formData: FormData) {
     }
 
     const { email, password, locale } = validatedFields.data
+    if (await isRateLimited('signup')) {
+        return { error: TOO_MANY_REQUESTS }
+    }
     const supabase = await createClient()
 
     const { error } = await supabase.auth.signUp({
@@ -103,17 +126,24 @@ export async function signout(locale: string = 'en') {
 export async function resetPassword(formData: FormData) {
     const validatedFields = resetPasswordSchema.safeParse({
         email: formData.get('email'),
+        locale: formData.get('locale') ?? undefined,
     })
 
     if (!validatedFields.success) {
         return { error: validatedFields.error.issues[0].message }
     }
 
-    const { email } = validatedFields.data
+    const { email, locale } = validatedFields.data
+    if (await isRateLimited('reset-password')) {
+        return { error: TOO_MANY_REQUESTS }
+    }
     const supabase = await createClient()
 
+    // The email link must go through /callback so the recovery code is exchanged for a
+    // session before /update-password calls updateUser().
+    const next = encodeURIComponent(`/${locale}/update-password`)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/update-password`,
+        redirectTo: `${await getSiteUrl()}/${locale}/callback?next=${next}`,
     })
 
     if (error) {
@@ -185,14 +215,15 @@ export async function signInWithGoogle(locale: string) {
         return { error: 'Invalid locale' }
     }
 
+    if (await isRateLimited('oauth')) {
+        return { error: TOO_MANY_REQUESTS }
+    }
     const supabase = await createClient()
-    const headersList = await headers()
-    const origin = headersList.get('origin') ?? process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: `${origin}/${validated.data}/callback`,
+            redirectTo: `${await getSiteUrl()}/${validated.data}/callback`,
         },
     })
 

@@ -19,6 +19,7 @@ export const HYBRID_ONLY = [
   'src/app/[locale]/(main)/storage/',
   'supabase/migrations/00000000000002_wallet_addresses.sql',
   'supabase/migrations/00000000000003_wallet_constraints.sql',
+  'supabase/migrations/00000000000005_hybrid_hardening.sql',
 ]
 
 // Dependencies to remove from package.json when mode is "web2"

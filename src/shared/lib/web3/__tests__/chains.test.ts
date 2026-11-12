@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { vi, describe, it, expect } from 'vitest'
 import { avalanche, avalancheFuji } from 'viem/chains'
 import {
   supportedChains,
@@ -95,5 +95,20 @@ describe('Web3 Chains', () => {
       // Assert
       expect(combinedLength).toBe(supportedChains.length)
     })
+  })
+})
+
+describe('getRpcUrl', () => {
+  it('should never reuse the testnet RPC for mainnet', async () => {
+    // Arrange
+    vi.resetModules()
+    vi.stubEnv('NEXT_PUBLIC_RPC_TESTNET', 'https://fuji.example')
+    vi.stubEnv('NEXT_PUBLIC_RPC_MAINNET', '')
+    const { getRpcUrl: freshGetRpcUrl } = await import('../chains')
+
+    // Act & Assert
+    expect(freshGetRpcUrl(avalancheFuji.id)).toBe('https://fuji.example')
+    expect(freshGetRpcUrl(avalanche.id)).toBeUndefined()
+    vi.unstubAllEnvs()
   })
 })
